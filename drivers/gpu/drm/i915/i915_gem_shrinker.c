@@ -272,6 +272,24 @@ unsigned long i915_gem_shrink_all(struct drm_i915_private *dev_priv)
 	return freed;
 }
 
+static bool i915_gem_shrinker_lock(struct drm_device *dev, bool *unlock)
+{
+	switch (mutex_trylock_recursive(&dev->struct_mutex)) {
+	case MUTEX_TRYLOCK_FAILED:
+		return false;
+
+	case MUTEX_TRYLOCK_SUCCESS:
+		*unlock = true;
+		return true;
+
+	case MUTEX_TRYLOCK_RECURSIVE:
+		*unlock = false;
+		return true;
+	}
+
+	BUG();
+}
+
 static unsigned long
 i915_gem_shrinker_count(struct shrinker *shrinker, struct shrink_control *sc)
 {
