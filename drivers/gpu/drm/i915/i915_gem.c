@@ -920,8 +920,7 @@ out_unpin:
 	if (node.allocated) {
 		wmb();
 		ggtt->base.clear_range(&ggtt->base,
-				       node.start, node.size,
-				       true);
+				       node.start, node.size);
 		i915_gem_object_unpin_pages(obj);
 		remove_mappable_node(&node);
 	} else {
@@ -1229,8 +1228,7 @@ out_unpin:
 	if (node.allocated) {
 		wmb();
 		ggtt->base.clear_range(&ggtt->base,
-				       node.start, node.size,
-				       true);
+				       node.start, node.size);
 		i915_gem_object_unpin_pages(obj);
 		remove_mappable_node(&node);
 	} else {
