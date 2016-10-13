@@ -5363,6 +5363,7 @@ static void gen9_enable_rps(struct drm_i915_private *dev_priv)
 static void gen9_enable_rc6(struct drm_i915_private *dev_priv)
 {
 	struct intel_engine_cs *engine;
+	enum intel_engine_id id;
 	uint32_t rc6_mask = 0;
 
 	/* 1a: Software RC state - RC0 */
@@ -5384,7 +5385,7 @@ static void gen9_enable_rc6(struct drm_i915_private *dev_priv)
 		I915_WRITE(GEN6_RC6_WAKE_RATE_LIMIT, 54 << 16);
 	I915_WRITE(GEN6_RC_EVALUATION_INTERVAL, 125000); /* 12500 * 1280ns */
 	I915_WRITE(GEN6_RC_IDLE_HYSTERSIS, 25); /* 25 * 1280ns */
-	for_each_engine(engine, dev_priv)
+	for_each_engine(engine, dev_priv, id)
 		I915_WRITE(RING_MAX_IDLE(engine->mmio_base), 10);
 
 	if (HAS_GUC(dev_priv))
@@ -5429,6 +5430,7 @@ static void gen9_enable_rc6(struct drm_i915_private *dev_priv)
 static void gen8_enable_rps(struct drm_i915_private *dev_priv)
 {
 	struct intel_engine_cs *engine;
+	enum intel_engine_id id;
 	uint32_t rc6_mask = 0;
 
 	/* 1a: Software RC state - RC0 */
@@ -5445,7 +5447,7 @@ static void gen8_enable_rps(struct drm_i915_private *dev_priv)
 	I915_WRITE(GEN6_RC6_WAKE_RATE_LIMIT, 40 << 16);
 	I915_WRITE(GEN6_RC_EVALUATION_INTERVAL, 125000); /* 12500 * 1280ns */
 	I915_WRITE(GEN6_RC_IDLE_HYSTERSIS, 25); /* 25 * 1280ns */
-	for_each_engine(engine, dev_priv)
+	for_each_engine(engine, dev_priv, id)
 		I915_WRITE(RING_MAX_IDLE(engine->mmio_base), 10);
 	I915_WRITE(GEN6_RC_SLEEP, 0);
 	if (IS_BROADWELL(dev_priv))
@@ -5505,6 +5507,7 @@ static void gen8_enable_rps(struct drm_i915_private *dev_priv)
 static void gen6_enable_rps(struct drm_i915_private *dev_priv)
 {
 	struct intel_engine_cs *engine;
+	enum intel_engine_id id;
 	u32 rc6vids, rc6_mask = 0;
 	u32 gtfifodbg;
 	int rc6_mode;
@@ -5538,7 +5541,7 @@ static void gen6_enable_rps(struct drm_i915_private *dev_priv)
 	I915_WRITE(GEN6_RC_EVALUATION_INTERVAL, 125000);
 	I915_WRITE(GEN6_RC_IDLE_HYSTERSIS, 25);
 
-	for_each_engine(engine, dev_priv)
+	for_each_engine(engine, dev_priv, id)
 		I915_WRITE(RING_MAX_IDLE(engine->mmio_base), 10);
 
 	I915_WRITE(GEN6_RC_SLEEP, 0);
@@ -5987,6 +5990,7 @@ static void valleyview_cleanup_gt_powersave(struct drm_i915_private *dev_priv)
 static void cherryview_enable_rps(struct drm_i915_private *dev_priv)
 {
 	struct intel_engine_cs *engine;
+	enum intel_engine_id id;
 	u32 gtfifodbg, val, rc6_mode = 0, pcbr;
 
 	WARN_ON(!mutex_is_locked(&dev_priv->rps.hw_lock));
@@ -6013,7 +6017,7 @@ static void cherryview_enable_rps(struct drm_i915_private *dev_priv)
 	I915_WRITE(GEN6_RC_EVALUATION_INTERVAL, 125000); /* 12500 * 1280ns */
 	I915_WRITE(GEN6_RC_IDLE_HYSTERSIS, 25); /* 25 * 1280ns */
 
-	for_each_engine(engine, dev_priv)
+	for_each_engine(engine, dev_priv, id)
 		I915_WRITE(RING_MAX_IDLE(engine->mmio_base), 10);
 	I915_WRITE(GEN6_RC_SLEEP, 0);
 
@@ -6075,6 +6079,7 @@ static void cherryview_enable_rps(struct drm_i915_private *dev_priv)
 static void valleyview_enable_rps(struct drm_i915_private *dev_priv)
 {
 	struct intel_engine_cs *engine;
+	enum intel_engine_id id;
 	u32 gtfifodbg, val, rc6_mode = 0;
 
 	WARN_ON(!mutex_is_locked(&dev_priv->rps.hw_lock));
@@ -6114,7 +6119,7 @@ static void valleyview_enable_rps(struct drm_i915_private *dev_priv)
 	I915_WRITE(GEN6_RC_EVALUATION_INTERVAL, 125000);
 	I915_WRITE(GEN6_RC_IDLE_HYSTERSIS, 25);
 
-	for_each_engine(engine, dev_priv)
+	for_each_engine(engine, dev_priv, id)
 		I915_WRITE(RING_MAX_IDLE(engine->mmio_base), 10);
 
 	I915_WRITE(GEN6_RC6_THRESHOLD, 0x557);
@@ -6801,7 +6806,7 @@ static void __intel_autoenable_gt_powersave(struct work_struct *work)
 	if (READ_ONCE(dev_priv->rps.enabled))
 		goto out;
 
-	rcs = &dev_priv->engine[RCS];
+	rcs = dev_priv->engine[RCS];
 	if (rcs->last_context)
 		goto out;
 
