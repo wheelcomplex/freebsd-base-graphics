@@ -25,6 +25,7 @@
 #include <xen/xen.h>
 
 #include "i915_drv.h"
+#include "gvt.h"
 
 struct intel_gvt_host intel_gvt_host;
 
@@ -99,14 +100,15 @@ static void init_device_info(struct intel_gvt *gvt)
  */
 void intel_gvt_clean_device(struct drm_i915_private *dev_priv)
 {
-	struct intel_gvt *gvt = &dev_priv->gvt;
+	struct intel_gvt *gvt = to_gvt(dev_priv);
 
-	if (WARN_ON(!gvt->initialized))
+	if (WARN_ON(!gvt))
 		return;
 
 	/* Other de-initialization of GVT components will be introduced. */
 
-	gvt->initialized = false;
+	kfree(dev_priv->gvt);
+	dev_priv->gvt = NULL;
 }
 
 /**
@@ -122,7 +124,9 @@ void intel_gvt_clean_device(struct drm_i915_private *dev_priv)
  */
 int intel_gvt_init_device(struct drm_i915_private *dev_priv)
 {
-	struct intel_gvt *gvt = &dev_priv->gvt;
+	struct intel_gvt *gvt;
+	int ret;
+
 	/*
 	 * Cannot initialize GVT device without intel_gvt_host gets
 	 * initialized first.
@@ -130,8 +134,12 @@ int intel_gvt_init_device(struct drm_i915_private *dev_priv)
 	if (WARN_ON(!intel_gvt_host.initialized))
 		return -EINVAL;
 
-	if (WARN_ON(gvt->initialized))
+	if (WARN_ON(dev_priv->gvt))
 		return -EEXIST;
+
+	gvt = kzalloc(sizeof(struct intel_gvt), GFP_KERNEL);
+	if (!gvt)
+		return -ENOMEM;
 
 	gvt_dbg_core("init gvt device\n");
 
@@ -143,6 +151,25 @@ int intel_gvt_init_device(struct drm_i915_private *dev_priv)
 	 * Other initialization of GVT components will be introduce here.
 	 */
 	gvt_dbg_core("gvt device creation is done\n");
-	gvt->initialized = true;
+	dev_priv->gvt = gvt;
 	return 0;
+
+out_clean_cmd_parser:
+	intel_gvt_clean_cmd_parser(gvt);
+out_clean_sched_policy:
+	intel_gvt_clean_sched_policy(gvt);
+out_clean_workload_scheduler:
+	intel_gvt_clean_workload_scheduler(gvt);
+out_clean_opregion:
+	intel_gvt_clean_opregion(gvt);
+out_clean_gtt:
+	intel_gvt_clean_gtt(gvt);
+out_clean_irq:
+	intel_gvt_clean_irq(gvt);
+out_free_firmware:
+	intel_gvt_free_firmware(gvt);
+out_clean_mmio_info:
+	intel_gvt_clean_mmio_info(gvt);
+	kfree(gvt);
+	return ret;
 }

@@ -85,14 +85,32 @@ struct intel_gvt_fence {
 
 struct intel_gvt {
 	struct mutex lock;
-	bool initialized;
-
 	struct drm_i915_private *dev_priv;
 	struct idr vgpu_idr;	/* vGPU IDR pool */
 
 	struct intel_gvt_device_info device_info;
 	struct intel_gvt_gm gm;
 	struct intel_gvt_fence fence;
+	struct intel_gvt_mmio mmio;
+	struct intel_gvt_firmware firmware;
+	struct intel_gvt_irq irq;
+	struct intel_gvt_gtt gtt;
+	struct intel_gvt_opregion opregion;
+	struct intel_gvt_workload_scheduler scheduler;
+	DECLARE_HASHTABLE(cmd_table, GVT_CMD_HASH_BITS);
+
+	struct task_struct *service_thread;
+	wait_queue_head_t service_thread_wq;
+	unsigned long service_request;
+};
+
+static inline struct intel_gvt *to_gvt(struct drm_i915_private *i915)
+{
+	return i915->gvt;
+}
+
+enum {
+	INTEL_GVT_REQUEST_EMULATE_VBLANK = 0,
 };
 
 /* Aperture/GM space definitions for GVT device */
