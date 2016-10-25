@@ -109,7 +109,7 @@
 #include <linux/mm.h>
 #include <linux/ioctl.h>
 #include <linux/workqueue.h>
-#include <linux/fence.h>
+#include <linux/dma-fence.h>
 
 #include <drm/drm_hashtab.h>
 
@@ -432,7 +432,7 @@ struct drm_ioctl_desc {
 struct drm_pending_event {
 	struct completion *completion;
 	struct drm_event *event;
-	struct fence *fence;
+	struct dma_fence *fence;
 	struct list_head link;
 	struct list_head pending_link;
 	struct drm_file *file_priv;
