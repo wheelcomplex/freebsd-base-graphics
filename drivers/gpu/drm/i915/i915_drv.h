@@ -944,6 +944,7 @@ struct i915_gem_context {
 #else
 	pid_t pid;
 #endif
+	const char *name;
 
 	struct i915_ctx_hang_stats hang_stats;
 
