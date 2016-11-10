@@ -527,7 +527,7 @@ int drm_dev_init(struct drm_device *dev,
 		 struct device *parent)
 {
 	int ret;
-
+ 
 	kref_init(&dev->ref);
 	dev->dev = parent;
 	dev->driver = driver;
@@ -603,8 +603,13 @@ err_minors:
 	drm_fs_inode_free(dev->anon_mapping);
 err_free:
 	mutex_destroy(&dev->master_mutex);
+	mutex_destroy(&dev->ctxlist_mutex);
+	mutex_destroy(&dev->filelist_mutex);
+	mutex_destroy(&dev->struct_mutex);
+#ifdef __FreeBSD__ // At least I think so (git blame says mmacy)
 	spin_lock_destroy(&dev->buf_lock);
 	spin_lock_destroy(&dev->event_lock);
+#endif
 	return ret;
 }
 EXPORT_SYMBOL(drm_dev_init);
@@ -669,6 +674,9 @@ static void drm_dev_release(struct kref *ref)
 	spin_lock_destroy(&dev->buf_lock);
 	spin_lock_destroy(&dev->event_lock);
 	mutex_destroy(&dev->master_mutex);
+	mutex_destroy(&dev->ctxlist_mutex);
+	mutex_destroy(&dev->filelist_mutex);
+	mutex_destroy(&dev->struct_mutex);
 	kfree(dev->unique);
 	kfree(dev);
 }
