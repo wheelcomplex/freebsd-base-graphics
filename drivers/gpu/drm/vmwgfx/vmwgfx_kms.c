@@ -982,6 +982,14 @@ static struct drm_framebuffer *vmw_kms_fb_create(struct drm_device *dev,
 	struct drm_mode_fb_cmd mode_cmd;
 	int ret;
 
+	info = drm_format_info(mode_cmd2->pixel_format);
+	if (!info || !info->depth) {
+		struct drm_format_name_buf format_name;
+		DRM_ERROR("Unsupported framebuffer format %s\n",
+		          drm_get_format_name(mode_cmd2->pixel_format, &format_name));
+		return ERR_PTR(-EINVAL);
+	}
+
 	mode_cmd.width = mode_cmd2->width;
 	mode_cmd.height = mode_cmd2->height;
 	mode_cmd.pitch = mode_cmd2->pitches[0];
