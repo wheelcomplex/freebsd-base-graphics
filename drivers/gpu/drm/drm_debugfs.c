@@ -234,6 +234,7 @@ EXPORT_SYMBOL(drm_debugfs_remove_files);
 int drm_debugfs_cleanup(struct drm_minor *minor)
 {
 	struct drm_device *dev = minor->dev;
+	int ret;
 
 	if (!minor->debugfs_root)
 		return 0;
@@ -243,6 +244,14 @@ int drm_debugfs_cleanup(struct drm_minor *minor)
 
 	/* NOTE Linux<->FreeBSD: Mesa needs the hw.dri sysctl tree. */
 	drm_sysctl_cleanup(minor->dev);
+
+	if (drm_core_check_feature(dev, DRIVER_ATOMIC)) {
+		ret = drm_atomic_debugfs_cleanup(minor);
+		if (ret) {
+			DRM_ERROR("DRM: Failed to remove atomic debugfs entries\n");
+			return ret;
+		}
+	}
 
 	drm_debugfs_remove_files(drm_debugfs_list, DRM_DEBUGFS_ENTRIES, minor);
 
