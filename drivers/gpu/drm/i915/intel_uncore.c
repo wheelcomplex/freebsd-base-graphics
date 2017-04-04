@@ -885,7 +885,12 @@ __gen2_read(64)
 	trace_i915_reg_rw(false, reg, val, sizeof(val), trace); \
 	return val
 
-static noinline void ___force_wake_auto(struct drm_i915_private *dev_priv,
+#ifdef __linux__
+static noinline void
+#else
+static __attribute__((noinline)) void
+#endif
+___force_wake_auto(struct drm_i915_private *dev_priv,
 					enum forcewake_domains fw_domains)
 {
 	struct intel_uncore_forcewake_domain *domain;
@@ -1267,7 +1272,7 @@ static void intel_uncore_fw_domains_init(struct drm_i915_private *dev_priv)
 #define ASSIGN_FW_DOMAINS_TABLE(d) \
 { \
 	dev_priv->uncore.fw_domains_table = \
-			(struct intel_forcewake_range *)(d); \
+			(const struct intel_forcewake_range *)(d); \
 	dev_priv->uncore.fw_domains_table_entries = ARRAY_SIZE((d)); \
 }
 

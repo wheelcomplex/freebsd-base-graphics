@@ -39,4 +39,7 @@
 
 #define	synchronize_irq(irq)	_intr_drain((irq))
 
+#define enable_irq(irq)
+#define disable_irq(irq)
+
 #endif	/* _LINUX_HARDIRQ_H_ */
