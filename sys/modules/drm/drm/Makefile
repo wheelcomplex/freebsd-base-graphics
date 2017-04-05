@@ -18,6 +18,7 @@ SRCS	= \
 	drm_crtc.c \
 	drm_crtc_helper.c \
 	drm_debugfs.c \
+	drm_debugfs_crc.c \
 	drm_dma.c \
 	drm_dp_aux_dev.c \
 	drm_dp_dual_mode_helper.c \

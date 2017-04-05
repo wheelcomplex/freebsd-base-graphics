@@ -71,6 +71,7 @@ SRCS	= \
 	intel_hotplug.c \
 	intel_i2c.c \
 	intel_lrc.c \
+	intel_lspcon.c \
 	intel_lvds.c \
 	intel_modes.c \
 	intel_mocs.c \
