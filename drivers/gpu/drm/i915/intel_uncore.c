@@ -1272,7 +1272,7 @@ static void intel_uncore_fw_domains_init(struct drm_i915_private *dev_priv)
 #define ASSIGN_FW_DOMAINS_TABLE(d) \
 { \
 	dev_priv->uncore.fw_domains_table = \
-			(const struct intel_forcewake_range *)(d); \
+			(struct intel_forcewake_range *)(d); \
 	dev_priv->uncore.fw_domains_table_entries = ARRAY_SIZE((d)); \
 }
 
