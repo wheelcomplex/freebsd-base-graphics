@@ -138,6 +138,7 @@ CWARNFLAGS.intel_psr.c=		-Wno-cast-qual
 CWARNFLAGS.intel_runtime_pm.c=		-Wno-cast-qual 
 CWARNFLAGS.intel_sdvo.c=	-Wno-cast-qual -Wno-enum-conversion
 CWARNFLAGS.intel_tv.c=		-Wno-unused
+CWARNFLAGS.intel_uncore.c=	-Wno-cast-qual
 CWARNFLAGS.i915_debugfs.c=	-Wno-unused-function -Wno-cast-qual -Wno-format -Wno-dangling-else
 CWARNFLAGS.i915_gem.c=		-Wno-tautological-pointer-compare -Wno-pointer-arith -Wno-cast-qual -Wno-int-conversion
 CWARNFLAGS.i915_drv.c=		-Wno-initializer-overrides -Wno-cast-qual -Wno-missing-prototypes
@@ -145,3 +146,5 @@ CWARNFLAGS.i915_gem_gtt.c=	-Wno-tautological-pointer-compare
 CWARNFLAGS.i915_gem_tiling.c=	-Wno-tautological-pointer-compare
 CWARNFLAGS.i915_gem_execbuffer.c=	-Wno-tautological-pointer-compare  -Wno-pointer-arith
 CWARNFLAGS.i915_pci.c=		-Wno-initializer-overrides 
+
+#CWARNFLAGS.i915_gpu_error.c=-Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-missing-prototypes
