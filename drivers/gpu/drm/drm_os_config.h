@@ -52,4 +52,6 @@
 #define CONFIG_DRM_AMDGPU_SI 1
 #define CONFIG_PM 1
 
+#define CONFIG_DRM_I915_CAPTURE_ERROR 1
+
 #endif
