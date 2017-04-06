@@ -44,6 +44,7 @@
 #include <linux/mm_types.h>
 #include <linux/hrtimer.h>
 #include <linux/time64.h>
+#include <linux/string.h>
 #include <linux/bitmap.h>
 #include <linux/atomic.h>
 #include <linux/smp.h>
@@ -87,8 +88,7 @@ struct task_struct {
 
 #define	current		((struct task_struct *)curthread->td_lkpi_task)
 
-#define	task_pid_group_leader(task) \
-	FIRST_THREAD_IN_PROC((task)->task_thread->td_proc)->td_tid
+#define	task_pid_group_leader(task) (task)->task_thread->td_proc->p_pid
 #define	task_pid(task)		((task)->pid)
 #define	task_pid_nr(task)	((task)->pid)
 #define	get_pid(x)		(x)
