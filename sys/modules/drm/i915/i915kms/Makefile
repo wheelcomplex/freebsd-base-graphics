@@ -117,7 +117,7 @@ SRCS	+=								\
 	vnode_if.h
 
 .include <bsd.kmod.mk>
-CWARNFLAGS += -Wno-pointer-arith -Wno-format
+CWARNFLAGS += -Wno-pointer-arith -Wno-format -Wno-cast-qual
 
 CWARNFLAGS.intel_audio.c=	-Wno-cast-qual
 CWARNFLAGS.intel_bios.c=	-Wno-cast-qual
