@@ -15,7 +15,6 @@ SRCS=	linux_acpi.c \
 	linux_kthread.c \
 	linux_lock.c \
 	linux_mtrr.c \
-	linux_notifier.c \
 	linux_page.c \
 	linux_pci.c \
 	linux_radix.c \
@@ -23,7 +22,6 @@ SRCS=	linux_acpi.c \
 	linux_schedule.c \
 	linux_seq_file.c \
 	linux_slab.c \
-	linux_sort.c \
 	linux_stubs.c \
 	linux_sysfs.c \
 	linux_tasklet.c \
