@@ -31,8 +31,8 @@ ktime_mono_to_real(ktime_t mono)
 	struct timespec tsb, tsn;
 	uint64_t now, boot;
 	ktime_t kt;
-        nanotime(&tsn);
-        nanouptime(&tsb);
+	nanotime(&tsn);
+	nanouptime(&tsb);
 
 	now = (tsn.tv_sec * NSEC_PER_SEC) + tsn.tv_nsec;
 	boot = (tsb.tv_sec * NSEC_PER_SEC) + tsb.tv_nsec;
@@ -51,22 +51,32 @@ ktime_get_real(void)
 	struct timespec ts;
 	ktime_t kt;
 	
-        nanotime(&ts);
-        kt.tv64 = (ts.tv_sec * NSEC_PER_SEC) + ts.tv_nsec;
+	nanotime(&ts);
+	kt.tv64 = (ts.tv_sec * NSEC_PER_SEC) + ts.tv_nsec;
 	return (kt);
 }
 
 static inline ktime_t
 ktime_get_boottime(void)
 {
-        struct timespec ts;
+	struct timespec ts;
 	ktime_t kt;
 
-        nanouptime(&ts);
-
-        kt.tv64 = (ts.tv_sec * NSEC_PER_SEC) + ts.tv_nsec;
+	nanouptime(&ts);
+	kt.tv64 = (ts.tv_sec * NSEC_PER_SEC) + ts.tv_nsec;
 	return (kt);
 }
 
+/**
+ * ktime_get_real_seconds - Get the seconds portion of CLOCK_REALTIME
+ */
+static inline int64_t
+ktime_get_real_seconds(void)
+{
+	struct timespec ts;
+	
+	nanotime(&ts);
+	return (ts.tv_sec);
+}
 
 #endif

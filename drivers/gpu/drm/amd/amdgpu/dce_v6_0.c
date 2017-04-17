@@ -32,6 +32,7 @@
 #include "amdgpu_connectors.h"
 #include "si/si_reg.h"
 #include "si/sid.h"
+#include "dce_v6_0.h"
 
 static void dce_v6_0_set_display_funcs(struct amdgpu_device *adev);
 static void dce_v6_0_set_irq_funcs(struct amdgpu_device *adev);

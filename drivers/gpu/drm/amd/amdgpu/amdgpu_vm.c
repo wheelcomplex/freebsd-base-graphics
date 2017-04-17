@@ -750,9 +750,9 @@ int amdgpu_vm_update_page_directory(struct amdgpu_device *adev,
 		goto error_free;
 
 	amdgpu_bo_fence(vm->page_directory, fence, true);
-	fence_put(vm->page_directory_fence);
-	vm->page_directory_fence = fence_get(fence);
-	fence_put(fence);
+	dma_fence_put(vm->page_directory_fence);
+	vm->page_directory_fence = dma_fence_get(fence);
+	dma_fence_put(fence);
 
 	return 0;
 
@@ -1090,7 +1090,7 @@ static int amdgpu_vm_bo_split_mapping(struct amdgpu_device *adev,
 				      struct amdgpu_bo_va_mapping *mapping,
 				      uint32_t flags,
 				      struct drm_mm_node *nodes,
-				      struct fence **fence)
+				      struct dma_fence **fence)
 {
 	uint64_t pfn, src = 0, start = mapping->it.start;
 	int r;
@@ -1178,7 +1178,7 @@ int amdgpu_vm_bo_update(struct amdgpu_device *adev,
 	uint32_t gtt_flags, flags;
 	struct ttm_mem_reg *mem;
 	struct drm_mm_node *nodes;
-	struct fence *exclusive;
+	struct dma_fence *exclusive;
 	int r;
 
 	if (clear) {

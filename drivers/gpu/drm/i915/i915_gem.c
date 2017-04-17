@@ -2041,8 +2041,17 @@ void i915_gem_runtime_suspend(struct drm_i915_private *dev_priv)
 	list_for_each_entry_safe(obj, on,
 				 &dev_priv->mm.userfault_list, userfault_link) {
 		list_del_init(&obj->userfault_link);
+
+#ifdef __FreeBSD__
+		struct drm_vma_offset_node *node;
+	
+		node = &obj->base.vma_node;
+		unmap_mapping_range(obj, drm_vma_node_offset_addr(node),
+							drm_vma_node_size(node) << PAGE_SHIFT, 1);
+#else
 		drm_vma_node_unmap(&obj->base.vma_node,
-				   obj->base.dev->anon_inode->i_mapping);
+						   obj->base.dev->anon_inode->i_mapping);
+#endif
 	}
 
 	/* The fence will be lost when the device powers down. If any were

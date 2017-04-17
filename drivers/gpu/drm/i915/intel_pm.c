@@ -3603,7 +3603,7 @@ static int skl_compute_plane_wm(const struct drm_i915_private *dev_priv,
 	cpp = drm_format_plane_cpp(fb->pixel_format, 0);
 	plane_pixel_rate = skl_adjusted_plane_pixel_rate(cstate, intel_pstate);
 
-	if (intel_rotation_90_or_270(pstate->rotation)) {
+	if (drm_rotation_90_or_270(pstate->rotation)) {
 		int cpp = (fb->pixel_format == DRM_FORMAT_NV12) ?
 			drm_format_plane_cpp(fb->pixel_format, 1) :
 			drm_format_plane_cpp(fb->pixel_format, 0);

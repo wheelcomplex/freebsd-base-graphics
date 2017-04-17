@@ -15103,18 +15103,18 @@ static struct drm_plane *intel_primary_plane_create(struct drm_device *dev,
 	if (ret)
 		goto fail;
 
-	if (INTEL_GEN(dev) >= 9) {
+	if (INTEL_GEN(dev_priv) >= 9) {
 		supported_rotations =
 			DRM_ROTATE_0 | DRM_ROTATE_90 |
 			DRM_ROTATE_180 | DRM_ROTATE_270;
-	} else if (INTEL_GEN(dev) >= 4) {
+	} else if (INTEL_GEN(dev_priv) >= 4) {
 		supported_rotations =
 			DRM_ROTATE_0 | DRM_ROTATE_180;
 	} else {
 		supported_rotations = DRM_ROTATE_0;
 	}
 
-	if (INTEL_GEN(dev) >= 4)
+	if (INTEL_GEN(dev_priv) >= 4)
 		drm_plane_create_rotation_property(&primary->base,
 						   DRM_ROTATE_0,
 						   supported_rotations);
@@ -15226,6 +15226,7 @@ intel_update_cursor_plane(struct drm_plane *plane,
 static struct drm_plane *intel_cursor_plane_create(struct drm_device *dev,
 						   int pipe)
 {
+	struct drm_i915_private *dev_priv = to_i915(dev);
 	struct intel_plane *cursor = NULL;
 	struct intel_plane_state *state = NULL;
 	int ret;
@@ -15257,7 +15258,7 @@ static struct drm_plane *intel_cursor_plane_create(struct drm_device *dev,
 	if (ret)
 		goto fail;
 
-	if (INTEL_GEN(dev) >= 4)
+	if (INTEL_GEN(dev_priv) >= 4)
 		drm_plane_create_rotation_property(&cursor->base,
 						   DRM_ROTATE_0,
 						   DRM_ROTATE_0 |
