@@ -43,6 +43,7 @@
 #include <linux/kref.h>
 #include <linux/pm_qos.h>
 #include <linux/shmem_fs.h>
+#include <linux/radix-tree.h>
 
 #include <drm/drmP.h>
 #include <drm/intel-gtt.h>
