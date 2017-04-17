@@ -61,4 +61,16 @@ struct dma_fence_array *dma_fence_array_create(int num_fences, struct dma_fence 
 				       u64 context, unsigned seqno,
 				       bool signal_on_any);
 
+/**
+ * dma_fence_is_array - check if a fence is from the array subsclass
+ * @fence: fence to test
+ *
+ * Return true if it is a dma_fence_array and false otherwise.
+ */
+static inline bool dma_fence_is_array(struct dma_fence *fence)
+{
+	return fence->ops == &dma_fence_array_ops;
+}
+
+
 #endif /* __LINUX_DMA_FENCE_ARRAY_H */
