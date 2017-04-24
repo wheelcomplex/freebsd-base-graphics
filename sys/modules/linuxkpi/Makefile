@@ -16,6 +16,7 @@ SRCS=	linux_acpi.c \
 	linux_irq.c \
 	linux_kmod.c \
 	linux_kthread.c \
+	linux_llist.c \
 	linux_lock.c \
 	linux_mtrr.c \
 	linux_notifier.c \
@@ -61,4 +62,5 @@ CFLAGS+= -include ${SRCTOP}/sys/dev/drm/drm_os_config.h
 .include <bsd.kmod.mk>
 CWARNFLAGS 		+= -Wno-pointer-arith
 CWARNFLAGS.linux_acpi.c=	-Wno-cast-qual
+CWARNFLAGS.linux_llist.c=	-Wno-int-conversion
 CWARNFLAGS.linux_radix.c=	-Wno-cast-qual

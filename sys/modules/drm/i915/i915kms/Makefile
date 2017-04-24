@@ -26,6 +26,7 @@ SRCS	= \
 	i915_gem_stolen.c \
 	i915_gem_shrinker.c \
 	i915_gem_tiling.c \
+	i915_gem_timeline.c \
 	i915_gem_userptr.c \
 	i915_gpu_error.c \
 	i915_guc_submission.c \

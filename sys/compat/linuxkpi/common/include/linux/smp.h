@@ -6,6 +6,7 @@
 #include <linux/list.h>
 #include <linux/preempt.h>
 #include <linux/kernel.h>
+#include <linux/llist.h>
 
 #define get_cpu()		({ preempt_disable(); smp_processor_id(); })
 #define put_cpu()		preempt_enable()

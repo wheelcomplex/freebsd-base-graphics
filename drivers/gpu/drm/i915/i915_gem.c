@@ -4345,9 +4345,12 @@ static void __i915_gem_free_objects(struct drm_i915_private *i915,
 
 	mutex_lock(&i915->drm.struct_mutex);
 	intel_runtime_pm_get(i915);
+	printf("__i915_gem_free_objects()> Entering first llist for each\n");
 	llist_for_each_entry(obj, freed, freed) {
 		struct i915_vma *vma, *vn;
 
+		printf("__i915_gem_free_objects()> llist for each: obj %p, freed %p\n",obj, freed);
+		
 		trace_i915_gem_object_destroy(obj);
 
 		GEM_BUG_ON(i915_gem_object_is_active(obj));
@@ -4364,7 +4367,11 @@ static void __i915_gem_free_objects(struct drm_i915_private *i915,
 	intel_runtime_pm_put(i915);
 	mutex_unlock(&i915->drm.struct_mutex);
 
+	printf("__i915_gem_free_objects()> Entering second llist for each\n");
 	llist_for_each_entry_safe(obj, on, freed, freed) {
+
+		printf("__i915_gem_free_objects()> llist for each safe: obj %p, on %p, freed %p\n",obj, on, freed);
+
 		GEM_BUG_ON(obj->bind_count);
 		GEM_BUG_ON(atomic_read(&obj->frontbuffer_bits));
 

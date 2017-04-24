@@ -99,6 +99,13 @@ typedef struct {
 	__ret;					\
 })
 
+#define spin_trylock_irq(_l)					\
+({ \
+	local_irq_disable(); \
+	spin_trylock(_l) ? \
+	1 : ({ local_irq_enable(); 0;  }); \
+})
+
 #define	spin_lock_nested(_l, _n) do {		\
 	if (SPIN_SKIP())			\
 		break;				\
@@ -157,5 +164,7 @@ spin_lock_destroy(spinlock_t *lock)
 		break;				\
 	mtx_assert(&(_l)->m, MA_OWNED);		\
 } while (0)
+
+
 
 #endif					/* _LINUX_SPINLOCK_H_ */
