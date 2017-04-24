@@ -210,7 +210,8 @@ enum dpio_channel {
 
 enum dpio_phy {
 	DPIO_PHY0,
-	DPIO_PHY1
+	DPIO_PHY1,
+	DPIO_DUMMY = -1	/* force enum signed */
 };
 
 enum intel_display_power_domain {
