@@ -61,3 +61,4 @@ CFLAGS+= -include ${SRCTOP}/sys/dev/drm/drm_os_config.h
 .include <bsd.kmod.mk>
 CWARNFLAGS 		+= -Wno-pointer-arith
 CWARNFLAGS.linux_acpi.c=	-Wno-cast-qual
+CWARNFLAGS.linux_radix.c=	-Wno-cast-qual

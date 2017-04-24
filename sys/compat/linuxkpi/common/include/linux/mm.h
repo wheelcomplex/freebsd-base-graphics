@@ -37,6 +37,7 @@
 #include <linux/gfp.h>
 #include <linux/kernel.h>
 #include <linux/mm_types.h>
+#include <linux/mmzone.h>
 #include <linux/pfn.h>
 
 #include <asm/pgtable.h>
