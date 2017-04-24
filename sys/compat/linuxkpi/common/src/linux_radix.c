@@ -345,7 +345,7 @@ static void set_iter_tags(struct radix_tree_iter *iter,
 static inline int tag_get(const struct radix_tree_node *node, unsigned int tag,
 		int offset)
 {
-	return test_bit(offset, node->tags[tag]);
+	return test_bit(offset, __DECONST(unsigned long *, node->tags[tag]));
 }
 
 static inline int root_tag_get(const struct radix_tree_root *root, unsigned tag)
@@ -411,7 +411,7 @@ void __rcu **radix_tree_next_chunk(const struct radix_tree_root *root,
 		iter->tags = 1;
 		iter->node = NULL;
 		__set_iter_shift(iter, 0);
-		return (void __rcu **)&root->rnode;
+		return __DECONST(void __rcu **, &root->rnode);
 	}
 
 	do {
