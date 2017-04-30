@@ -61,6 +61,7 @@
 #define __exit
 #define	__rcu
 #define __malloc
+#define __percpu
 
 #define __weak		__attribute__((weak))
 

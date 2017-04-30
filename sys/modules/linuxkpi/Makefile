@@ -23,6 +23,7 @@ SRCS=	linux_acpi.c \
 	linux_page.c \
 	linux_pci.c \
 	linux_radix.c \
+	linux_relay.c \
 	linux_rcu.c \
 	linux_reservation.c \
 	linux_schedule.c \

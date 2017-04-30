@@ -54,4 +54,6 @@
 
 #define CONFIG_DRM_I915_CAPTURE_ERROR 1
 
+#define CONFIG_RELAY 1
+
 #endif

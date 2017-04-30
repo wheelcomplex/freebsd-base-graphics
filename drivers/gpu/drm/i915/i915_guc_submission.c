@@ -24,7 +24,7 @@
 #include <linux/firmware.h>
 #include <linux/circ_buf.h>
 #include <linux/debugfs.h>
-/* #include <linux/relay.h> */
+#include <linux/relay.h>
 #include "i915_drv.h"
 #include "intel_guc.h"
 
@@ -890,57 +890,57 @@ err:
  * Sub buffer switch callback. Called whenever relay has to switch to a new
  * sub buffer, relay stays on the same sub buffer if 0 is returned.
  */
-/* static int subbuf_start_callback(struct rchan_buf *buf, */
-/* 				 void *subbuf, */
-/* 				 void *prev_subbuf, */
-/* 				 size_t prev_padding) */
-/* { */
-/* 	/\* Use no-overwrite mode by default, where relay will stop accepting */
-/* 	 * new data if there are no empty sub buffers left. */
-/* 	 * There is no strict synchronization enforced by relay between Consumer */
-/* 	 * and Producer. In overwrite mode, there is a possibility of getting */
-/* 	 * inconsistent/garbled data, the producer could be writing on to the */
-/* 	 * same sub buffer from which Consumer is reading. This can't be avoided */
-/* 	 * unless Consumer is fast enough and can always run in tandem with */
-/* 	 * Producer. */
-/* 	 *\/ */
-/* 	if (relay_buf_full(buf)) */
-/* 		return 0; */
+static int subbuf_start_callback(struct rchan_buf *buf,
+				 void *subbuf,
+				 void *prev_subbuf,
+				 size_t prev_padding)
+{
+	/* Use no-overwrite mode by default, where relay will stop accepting
+	 * new data if there are no empty sub buffers left.
+	 * There is no strict synchronization enforced by relay between Consumer
+	 * and Producer. In overwrite mode, there is a possibility of getting
+	 * inconsistent/garbled data, the producer could be writing on to the
+	 * same sub buffer from which Consumer is reading. This can't be avoided
+	 * unless Consumer is fast enough and can always run in tandem with
+	 * Producer.
+	 */
+	if (relay_buf_full(buf))
+		return 0;
 
-/* 	return 1; */
-/* } */
+	return 1;
+}
 
 /*
  * file_create() callback. Creates relay file in debugfs.
  */
-/* static struct dentry *create_buf_file_callback(const char *filename, */
-/* 					       struct dentry *parent, */
-/* 					       umode_t mode, */
-/* 					       struct rchan_buf *buf, */
-/* 					       int *is_global) */
-/* { */
-/* 	struct dentry *buf_file; */
+static struct dentry *create_buf_file_callback(const char *filename,
+					       struct dentry *parent,
+					       umode_t mode,
+					       struct rchan_buf *buf,
+					       int *is_global)
+{
+	struct dentry *buf_file;
 
-/* 	/\* This to enable the use of a single buffer for the relay channel and */
-/* 	 * correspondingly have a single file exposed to User, through which */
-/* 	 * it can collect the logs in order without any post-processing. */
-/* 	 * Need to set 'is_global' even if parent is NULL for early logging. */
-/* 	 *\/ */
-/* 	*is_global = 1; */
+	/* This to enable the use of a single buffer for the relay channel and
+	 * correspondingly have a single file exposed to User, through which
+	 * it can collect the logs in order without any post-processing.
+	 * Need to set 'is_global' even if parent is NULL for early logging.
+	 */
+	*is_global = 1;
 
-/* 	if (!parent) */
-/* 		return NULL; */
+	if (!parent)
+		return NULL;
 
-/* 	/\* Not using the channel filename passed as an argument, since for each */
-/* 	 * channel relay appends the corresponding CPU number to the filename */
-/* 	 * passed in relay_open(). This should be fine as relay just needs a */
-/* 	 * dentry of the file associated with the channel buffer and that file's */
-/* 	 * name need not be same as the filename passed as an argument. */
-/* 	 *\/ */
-/* 	buf_file = debugfs_create_file("guc_log", mode, */
-/* 				       parent, buf, &relay_file_operations); */
-/* 	return buf_file; */
-/* } */
+	/* Not using the channel filename passed as an argument, since for each
+	 * channel relay appends the corresponding CPU number to the filename
+	 * passed in relay_open(). This should be fine as relay just needs a
+	 * dentry of the file associated with the channel buffer and that file's
+	 * name need not be same as the filename passed as an argument.
+	 */
+	buf_file = debugfs_create_file("guc_log", mode,
+				       parent, buf, &relay_file_operations);
+	return buf_file;
+}
 
 /*
  * file_remove() default callback. Removes relay file in debugfs.
@@ -952,53 +952,53 @@ static int remove_buf_file_callback(struct dentry *dentry)
 }
 
 /* relay channel callbacks */
-/* static struct rchan_callbacks relay_callbacks = { */
-/* 	.subbuf_start = subbuf_start_callback, */
-/* 	.create_buf_file = create_buf_file_callback, */
-/* 	.remove_buf_file = remove_buf_file_callback, */
-/* }; */
+static struct rchan_callbacks relay_callbacks = {
+	.subbuf_start = subbuf_start_callback,
+	.create_buf_file = create_buf_file_callback,
+	.remove_buf_file = remove_buf_file_callback,
+};
 
 static void guc_log_remove_relay_file(struct intel_guc *guc)
 {
-	/* relay_close(guc->log.relay_chan); */
+	relay_close(guc->log.relay_chan);
 }
 
 static int guc_log_create_relay_channel(struct intel_guc *guc)
 {
-	/* struct drm_i915_private *dev_priv = guc_to_i915(guc); */
-	/* struct rchan *guc_log_relay_chan; */
-	/* size_t n_subbufs, subbuf_size; */
+	struct drm_i915_private *dev_priv = guc_to_i915(guc);
+	struct rchan *guc_log_relay_chan;
+	size_t n_subbufs, subbuf_size;
 
-	/* /\* Keep the size of sub buffers same as shared log buffer *\/ */
-	/* subbuf_size = guc->log.vma->obj->base.size; */
+	/* Keep the size of sub buffers same as shared log buffer */
+	subbuf_size = guc->log.vma->obj->base.size;
 
-	/* /\* Store up to 8 snapshots, which is large enough to buffer sufficient */
-	/*  * boot time logs and provides enough leeway to User, in terms of */
-	/*  * latency, for consuming the logs from relay. Also doesn't take */
-	/*  * up too much memory. */
-	/*  *\/ */
-	/* n_subbufs = 8; */
+	/* Store up to 8 snapshots, which is large enough to buffer sufficient
+	 * boot time logs and provides enough leeway to User, in terms of
+	 * latency, for consuming the logs from relay. Also doesn't take
+	 * up too much memory.
+	 */
+	n_subbufs = 8;
 
-	/* guc_log_relay_chan = relay_open(NULL, NULL, subbuf_size, */
-	/* 				n_subbufs, &relay_callbacks, dev_priv); */
-	/* if (!guc_log_relay_chan) { */
-	/* 	DRM_ERROR("Couldn't create relay chan for GuC logging\n"); */
-	/* 	return -ENOMEM; */
-	/* } */
+	guc_log_relay_chan = relay_open(NULL, NULL, subbuf_size,
+					n_subbufs, &relay_callbacks, dev_priv);
+	if (!guc_log_relay_chan) {
+		DRM_ERROR("Couldn't create relay chan for GuC logging\n");
+		return -ENOMEM;
+	}
 
-	/* GEM_BUG_ON(guc_log_relay_chan->subbuf_size < subbuf_size); */
-	/* guc->log.relay_chan = guc_log_relay_chan; */
+	GEM_BUG_ON(guc_log_relay_chan->subbuf_size < subbuf_size);
+	guc->log.relay_chan = guc_log_relay_chan;
 	return 0;
 }
 
 static int guc_log_create_relay_file(struct intel_guc *guc)
 {
-	/* struct drm_i915_private *dev_priv = guc_to_i915(guc); */
-	/* struct dentry *log_dir; */
-	/* int ret; */
+	struct drm_i915_private *dev_priv = guc_to_i915(guc);
+	struct dentry *log_dir;
+	int ret;
 
 	/* For now create the log file in /sys/kernel/debug/dri/0 dir */
-	/* log_dir = dev_priv->drm.primary->debugfs_root; */
+	log_dir = dev_priv->drm.primary->debugfs_root;
 
 	/* If /sys/kernel/debug/dri/0 location do not exist, then debugfs is
 	 * not mounted and so can't create the relay file.
@@ -1009,18 +1009,18 @@ static int guc_log_create_relay_file(struct intel_guc *guc)
 	 *      relay channel.
 	 * ii)  Should be able to use 'relay_file_operations' fops for the file.
 	 * iii) Set the 'i_private' field of file's inode to the pointer of
-	 *	relay channel buffer.
+	 *  relay channel buffer. 
 	 */
-	/* if (!log_dir) { */
-	/* 	DRM_ERROR("Debugfs dir not available yet for GuC log file\n"); */
-	/* 	return -ENODEV; */
-	/* } */
+	if (!log_dir) {
+		DRM_ERROR("Debugfs dir not available yet for GuC log file\n");
+		return -ENODEV;
+	}
 
-	/* ret = relay_late_setup_files(guc->log.relay_chan, "guc_log", log_dir); */
-	/* if (ret) { */
-	/* 	DRM_ERROR("Couldn't associate relay chan with file %d\n", ret); */
-	/* 	return ret; */
-	/* } */
+	ret = relay_late_setup_files(guc->log.relay_chan, "guc_log", log_dir);
+	if (ret) {
+		DRM_ERROR("Couldn't associate relay chan with file %d\n", ret);
+		return ret;
+	}
 
 	return 0;
 }
@@ -1030,19 +1030,19 @@ static void guc_move_to_next_buf(struct intel_guc *guc)
 	/* Make sure the updates made in the sub buffer are visible when
 	 * Consumer sees the following update to offset inside the sub buffer.
 	 */
-	/* smp_wmb(); */
+	smp_wmb();
 
-	/* /\* All data has been written, so now move the offset of sub buffer. *\/ */
-	/* relay_reserve(guc->log.relay_chan, guc->log.vma->obj->base.size); */
+	/* All data has been written, so now move the offset of sub buffer. */
+	relay_reserve(guc->log.relay_chan, guc->log.vma->obj->base.size);
 
-	/* /\* Switch to the next sub buffer *\/ */
-	/* relay_flush(guc->log.relay_chan); */
+	/* Switch to the next sub buffer */
+	relay_flush(guc->log.relay_chan);
 }
 
 static void *guc_get_write_buffer(struct intel_guc *guc)
 {
-	/* if (!guc->log.relay_chan) */
-	/* 	return NULL; */
+	if (!guc->log.relay_chan)
+		return NULL;
 
 	/* Just get the base address of a new sub buffer and copy data into it
 	 * ourselves. NULL will be returned in no-overwrite mode, if all sub
@@ -1052,8 +1052,7 @@ static void *guc_get_write_buffer(struct intel_guc *guc)
 	 * done without using relay_reserve() along with relay_write(). So its
 	 * better to use relay_reserve() alone.
 	 */
-	/* return relay_reserve(guc->log.relay_chan, 0); */
-	return NULL;
+	return relay_reserve(guc->log.relay_chan, 0);
 }
 
 static bool
@@ -1213,10 +1212,10 @@ static void guc_log_cleanup(struct intel_guc *guc)
 
 	guc->log.flush_wq = NULL;
 
-	/* if (guc->log.relay_chan) */
-	/* 	guc_log_remove_relay_file(guc); */
+	if (guc->log.relay_chan)
+		guc_log_remove_relay_file(guc);
 
-	/* guc->log.relay_chan = NULL; */
+	guc->log.relay_chan = NULL;
 
 	if (guc->log.buf_addr)
 		i915_gem_object_unpin_map(guc->log.vma->obj);
@@ -1251,15 +1250,15 @@ static int guc_log_create_extras(struct intel_guc *guc)
 		guc->log.buf_addr = vaddr;
 	}
 
-	/* if (!guc->log.relay_chan) { */
-	/* 	/\* Create a relay channel, so that we have buffers for storing */
-	/* 	 * the GuC firmware logs, the channel will be linked with a file */
-	/* 	 * later on when debugfs is registered. */
-	/* 	 *\/ */
-	/* 	ret = guc_log_create_relay_channel(guc); */
-	/* 	if (ret) */
-	/* 		return ret; */
-	/* } */
+	if (!guc->log.relay_chan) {
+		/* Create a relay channel, so that we have buffers for storing
+		 * the GuC firmware logs, the channel will be linked with a file
+		 * later on when debugfs is registered.
+		 */
+		ret = guc_log_create_relay_channel(guc);
+		if (ret)
+			return ret;
+	}
 
 	if (!guc->log.flush_wq) {
 		INIT_WORK(&guc->log.flush_work, guc_capture_logs_work);
@@ -1358,9 +1357,9 @@ static int guc_log_late_setup(struct intel_guc *guc)
 	if (ret)
 		goto err;
 
-	/* ret = guc_log_create_relay_file(guc); */
-	/* if (ret) */
-		/* goto err; */
+	ret = guc_log_create_relay_file(guc);
+	if (ret)
+		goto err;
 
 	return 0;
 err:
