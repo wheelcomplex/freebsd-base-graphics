@@ -165,13 +165,18 @@ extern wake_up_func_t linux_wake_up;
 	MTX_SYSINIT(name, &(name).lock.m,		\
 	    spin_lock_name("wqhead"), MTX_DEF)
 
-#define	init_waitqueue_head(wqh) do {				\
+// Can we ignore key? (struct lock_class_key *) 
+#define	__init_waitqueue_head(wqh, name, key) do {	\
 	wait_queue_head_t *__wqh = (wqh);			\
 	memset(__wqh, 0, sizeof(*__wqh));			\
 	mtx_init(&__wqh->lock.m, spin_lock_name("wqhead"),	\
 	    NULL, MTX_DEF | MTX_NOWITNESS);			\
 	INIT_LIST_HEAD(&__wqh->task_list);			\
 	INIT_LIST_HEAD(&__wqh->wqh_file_list);			\
+} while (0)
+
+#define	init_waitqueue_head(wqh) do {		\
+	__init_waitqueue_head(wqh, NULL, NULL); \
 } while (0)
 
 static inline void
