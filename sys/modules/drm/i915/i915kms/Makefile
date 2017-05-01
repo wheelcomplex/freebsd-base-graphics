@@ -18,7 +18,7 @@ SRCS	= \
 	i915_gem_dmabuf.c \
 	i915_gem_evict.c \
 	i915_gem_execbuffer.c \
-	i915_gem_fence.c \
+	i915_gem_fence_reg.c \
 	i915_gem_gtt.c \
 	i915_gem_internal.c \
 	i915_gem_render_state.c \
