@@ -32,6 +32,11 @@
 #ifndef _DRM_P_H_
 #define _DRM_P_H_
 
+#include "opt_compat.h"
+#include "opt_drm.h"
+#include "opt_syscons.h"
+
+
 #if defined(_KERNEL) || defined(__KERNEL__)
 #define _SYS_TREE_H_
 #include <sys/param.h>
@@ -128,13 +133,13 @@
 
 
 #include <asm/mtrr.h>
+#include <dev/drm/drm_os_freebsd.h>
 #include <drm/drm_agpsupport.h>
 #include <drm/drm_crtc.h>
 #include <drm/drm_fourcc.h>
 #include <drm/drm_global.h>
 #include <drm/drm_mem_util.h>
 #include <drm/drm_mm.h>
-#include <dev/drm/drm_os_freebsd.h>
 #include <uapi/drm/drm_sarea.h>
 #include <drm/drm_vma_manager.h>
 #include <linux/atomic.h>
@@ -142,9 +147,7 @@
 
 #define smp_wmb() wmb()
 
-#include "opt_compat.h"
-#include "opt_drm.h"
-#include "opt_syscons.h"
+
 
 #ifdef DRM_DEBUG
 #undef DRM_DEBUG
@@ -1225,6 +1228,113 @@ extern int		drm_sysctl_cleanup(struct drm_device *dev);
 
 /* helper for handling conditionals in various for_each macros */
 #define for_each_if(condition) if (!(condition)) {} else
+				/* Debugfs support */
+#if defined(CONFIG_DEBUG_FS)
+extern int drm_debugfs_create_files(const struct drm_info_list *files,
+				    int count, struct dentry *root,
+				    struct drm_minor *minor);
+extern int drm_debugfs_remove_files(const struct drm_info_list *files,
+				    int count, struct drm_minor *minor);
+#else
+static inline int drm_debugfs_create_files(const struct drm_info_list *files,
+					   int count, struct dentry *root,
+					   struct drm_minor *minor)
+{
+	return 0;
+}
+
+static inline int drm_debugfs_remove_files(const struct drm_info_list *files,
+					   int count, struct drm_minor *minor)
+{
+	return 0;
+}
+#endif
+
+struct dma_buf_export_info;
+
+extern struct dma_buf *drm_gem_prime_export(struct drm_device *dev,
+					    struct drm_gem_object *obj,
+					    int flags);
+extern int drm_gem_prime_handle_to_fd(struct drm_device *dev,
+		struct drm_file *file_priv, uint32_t handle, uint32_t flags,
+		int *prime_fd);
+extern struct drm_gem_object *drm_gem_prime_import(struct drm_device *dev,
+		struct dma_buf *dma_buf);
+extern int drm_gem_prime_fd_to_handle(struct drm_device *dev,
+		struct drm_file *file_priv, int prime_fd, uint32_t *handle);
+struct dma_buf *drm_gem_dmabuf_export(struct drm_device *dev,
+				      struct dma_buf_export_info *exp_info);
+extern void drm_gem_dmabuf_release(struct dma_buf *dma_buf);
+
+extern int drm_prime_sg_to_page_addr_arrays(struct sg_table *sgt, struct page **pages,
+					    dma_addr_t *addrs, int max_pages);
+extern struct sg_table *drm_prime_pages_to_sg(struct page **pages, unsigned int nr_pages);
+extern void drm_prime_gem_destroy(struct drm_gem_object *obj, struct sg_table *sg);
+
+
+
+extern unsigned int drm_timestamp_monotonic;
+
+extern struct class *drm_class;
+
+extern struct drm_dma_handle *drm_pci_alloc(struct drm_device *dev, size_t size,
+					    size_t align);
+extern void drm_pci_free(struct drm_device *dev, struct drm_dma_handle * dmah);
+
+			       /* sysfs support (drm_sysfs.c) */
+extern void drm_sysfs_hotplug_event(struct drm_device *dev);
+
+
+struct drm_device *drm_dev_alloc(struct drm_driver *driver,
+				 struct device *parent);
+int drm_dev_init(struct drm_device *dev,
+		 struct drm_driver *driver,
+		 struct device *parent);
+void drm_dev_ref(struct drm_device *dev);
+void drm_dev_unref(struct drm_device *dev);
+int drm_dev_register(struct drm_device *dev, unsigned long flags);
+void drm_dev_unregister(struct drm_device *dev);
+
+struct drm_minor *drm_minor_acquire(unsigned int minor_id);
+void drm_minor_release(struct drm_minor *minor);
+
+void drm_pci_agp_destroy(struct drm_device *dev);
+
+extern int drm_pci_init(struct drm_driver *driver, struct pci_driver *pdriver);
+extern void drm_pci_exit(struct drm_driver *driver, struct pci_driver *pdriver);
+#ifdef CONFIG_PCI
+extern int drm_get_pci_dev(struct pci_dev *pdev,
+			   const struct pci_device_id *ent,
+			   struct drm_driver *driver);
+extern int drm_pci_set_busid(struct drm_device *dev, struct drm_master *master);
+#else
+static inline int drm_get_pci_dev(struct pci_dev *pdev,
+				  const struct pci_device_id *ent,
+				  struct drm_driver *driver)
+{
+	return -ENOSYS;
+}
+
+static inline int drm_pci_set_busid(struct drm_device *dev,
+				    struct drm_master *master)
+{
+	return -ENOSYS;
+}
+#endif
+
+#define DRM_PCIE_SPEED_25 1
+#define DRM_PCIE_SPEED_50 2
+#define DRM_PCIE_SPEED_80 4
+
+extern int drm_pcie_get_speed_cap_mask(struct drm_device *dev, u32 *speed_mask);
+extern int drm_pcie_get_max_link_width(struct drm_device *dev, u32 *mlw);
+
+/* platform section */
+extern int drm_platform_init(struct drm_driver *driver, struct platform_device *platform_device);
+
+/* sysctl support (drm_sysctl.h) */
+extern int		drm_sysctl_init(struct drm_device *dev);
+extern int		drm_sysctl_cleanup(struct drm_device *dev);
 
 struct ttm_bo_device;
 int ttm_bo_mmap_single(struct ttm_bo_device *bdev, vm_ooffset_t *offset,

@@ -133,6 +133,9 @@ struct file_operations {
 	int (*release)(struct inode *, struct file *);
 	int (*fasync)(int, struct file *, int);
 
+	// Needed to build 4.10 by i915 driver but not used.
+	long (*compat_ioctl)(struct file *, unsigned int, unsigned long);
+
 /* Although not supported in FreeBSD, to align with Linux code
  * we are adding llseek() only when it is mapped to no_llseek which returns 
  * an illegal seek error
@@ -148,7 +151,6 @@ struct file_operations {
 	int (*readdir)(struct file *, void *, filldir_t);
 	int (*ioctl)(struct inode *, struct file *, unsigned int,
 	    unsigned long);
-	long (*compat_ioctl)(struct file *, unsigned int, unsigned long);
 	int (*flush)(struct file *, fl_owner_t id);
 	int (*fsync)(struct file *, struct dentry *, int datasync);
 	int (*aio_fsync)(struct kiocb *, int datasync);

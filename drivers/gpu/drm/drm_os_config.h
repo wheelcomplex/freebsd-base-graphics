@@ -30,7 +30,7 @@
 #endif
 
 #ifdef COMPAT_FREEBSD32
-#define	CONFIG_COMPAT
+#define	CONFIG_COMPAT 1
 #endif
 
 #define	CONFIG_AGP	1

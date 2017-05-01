@@ -33,6 +33,7 @@
 #include <drm/radeon_drm.h>
 #include "radeon_drv.h"
 
+#ifdef CONFIG_COMPAT
 typedef struct drm_radeon_init32 {
 	int func;
 	u32 sarea_priv_offset;
@@ -422,3 +423,4 @@ long radeon_kms_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long 
 
 	return ret;
 }
+#endif

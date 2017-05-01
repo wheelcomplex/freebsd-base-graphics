@@ -35,6 +35,15 @@
 #include "i915_drv.h"
 #include "i915_trace.h"
 
+static bool i915_gem_shrinker_lock(struct drm_device *dev, bool *unlock)
+{
+	if (!mutex_trylock(&dev->struct_mutex))
+		return false;
+
+	*unlock = true;
+	return true;
+}
+
 static bool mutex_is_locked_by(struct mutex *mutex, struct task_struct *task)
 {
 	if (!mutex_is_locked(mutex))
@@ -46,20 +55,6 @@ static bool mutex_is_locked_by(struct mutex *mutex, struct task_struct *task)
 	/* Since UP may be pre-empted, we cannot assume that we own the lock */
 	return false;
 #endif
-}
-
-static bool i915_gem_shrinker_lock(struct drm_device *dev, bool *unlock)
-{
-	if (!mutex_trylock(&dev->struct_mutex)) {
-		if (!mutex_is_locked_by(&dev->struct_mutex, current))
-			return false;
-
-		*unlock = false;
-	} else {
-		*unlock = true;
-	}
-
-	return true;
 }
 
 static bool any_vma_pinned(struct drm_i915_gem_object *obj)
@@ -275,15 +270,6 @@ unsigned long i915_gem_shrink_all(struct drm_i915_private *dev_priv)
 	rcu_barrier(); /* wait until our RCU delayed slab frees are completed */
 
 	return freed;
-}
-
-static bool i915_gem_shrinker_lock(struct drm_device *dev, bool *unlock)
-{
-	if (!mutex_trylock(&dev->struct_mutex))
-		return false;
-
-	*unlock = true;
-	return true;
 }
 
 static unsigned long
