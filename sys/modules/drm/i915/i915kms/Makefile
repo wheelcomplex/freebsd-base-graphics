@@ -131,6 +131,7 @@ CWARNFLAGS.intel_display.c=	-Wno-tautological-pointer-compare -Wno-enum-conversi
 CWARNFLAGS.intel_dpll_mgr.c=	-Wno-compare-distinct-pointer-types
 CWARNFLAGS.intel_dsi_panel_vbt.c= -Wno-cast-qual
 CWARNFLAGS.intel_engine_cs.c= -Wno-cast-qual
+CWARNFLAGS.intel_fbdev.c= 	-Wno-initializer-overrides
 CWARNFLAGS.intel_guc_loader.c= 	-Wno-cast-qual
 CWARNFLAGS.intel_hdmi.c=	-Wno-enum-conversion
 CWARNFLAGS.intel_hotplug.c=	-Wno-missing-prototypes
