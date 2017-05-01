@@ -69,6 +69,7 @@ SRCS	= \
 	intel_freebsd.c \
 	intel_frontbuffer.c \
 	intel_guc_loader.c \
+	intel_hangcheck.c \
 	intel_hdmi.c \
 	intel_hotplug.c \
 	intel_i2c.c \

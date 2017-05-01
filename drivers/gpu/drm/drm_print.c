@@ -22,8 +22,11 @@
  * Authors:
  * Rob Clark <robdclark@gmail.com>
  */
-
+#ifdef __FreeBSD__
+#include <machine/stdarg.h>
+#else
 #include <stdarg.h>
+#endif
 #include <linux/seq_file.h>
 #include <drm/drmP.h>
 #include <drm/drm_print.h>

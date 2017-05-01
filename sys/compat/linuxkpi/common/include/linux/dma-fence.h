@@ -366,7 +366,7 @@ dma_fence_test_signaled_any(struct dma_fence **fences, uint32_t count)
 
 static inline signed long
 dma_fence_wait_any_timeout(struct dma_fence **fences, uint32_t count,
-		       bool intr, signed long timeout)
+						   bool intr, signed long timeout, uint32_t *idx)
 {
 	struct default_wait_cb *cb;
 	signed long ret;

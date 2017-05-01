@@ -56,6 +56,7 @@ SRCS	= \
 	drm_pci.c \
 	drm_plane.c \
 	drm_plane_helper.c \
+	drm_print.c \
 	drm_prime.c \
 	drm_probe_helper.c \
 	drm_property.c \
