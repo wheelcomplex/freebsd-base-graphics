@@ -45,6 +45,7 @@
 #include <linux/seqlock.h>
 #include <linux/rcupdate.h>
 #include <linux/atomic.h>
+#include <linux/radix-tree.h>
 
 
 extern struct ww_class reservation_ww_class;
