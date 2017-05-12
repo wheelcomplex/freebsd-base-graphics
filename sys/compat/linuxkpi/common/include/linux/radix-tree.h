@@ -32,6 +32,9 @@
 #define	_LINUX_RADIX_TREE_H_
 
 #include <linux/types.h>
+#include <linux/bitops.h>
+#include <linux/compiler.h>
+#include <linux/rcupdate.h>
 
 #define RADIX_TREE_MAX_TAGS 3
 
