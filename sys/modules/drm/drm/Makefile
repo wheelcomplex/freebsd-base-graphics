@@ -25,6 +25,7 @@ SRCS	= \
 	drm_dp_helper.c \
 	drm_dp_mst_topology.c \
 	drm_drv.c \
+	drm_dumb_buffers.c \
 	drm_edid.c \
 	drm_edid_load.c \
 	drm_encoder.c \
@@ -47,6 +48,7 @@ SRCS	= \
 	drm_memory.c \
 	drm_mipi_dsi.c \
 	drm_mm.c \
+	drm_mode_config.c \
 	drm_modes.c \
 	drm_mode_object.c \
 	drm_modeset_lock.c \

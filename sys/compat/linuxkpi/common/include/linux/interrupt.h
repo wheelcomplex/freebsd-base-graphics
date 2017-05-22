@@ -33,14 +33,12 @@
 
 #include <linux/device.h>
 #include <linux/pci.h>
-
+#include <linux/irqreturn.h>
 #include <linux/hardirq.h>
 
 struct seq_file;
 #undef resource
 typedef	irqreturn_t	(*irq_handler_t)(int, void *);
-
-#define	IRQ_RETVAL(x)	((x) != IRQ_NONE)
 
 #define	IRQF_SHARED	RF_SHAREABLE
 

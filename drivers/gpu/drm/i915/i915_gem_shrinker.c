@@ -37,11 +37,20 @@
 
 static bool i915_gem_shrinker_lock(struct drm_device *dev, bool *unlock)
 {
-	if (!mutex_trylock(&dev->struct_mutex))
+	switch (mutex_trylock_recursive(&dev->struct_mutex)) {
+	case MUTEX_TRYLOCK_FAILED:
 		return false;
 
-	*unlock = true;
-	return true;
+	case MUTEX_TRYLOCK_SUCCESS:
+		*unlock = true;
+		return true;
+
+	case MUTEX_TRYLOCK_RECURSIVE:
+		*unlock = false;
+		return true;
+	}
+
+	BUG();
 }
 
 static bool mutex_is_locked_by(struct mutex *mutex, struct task_struct *task)
@@ -270,24 +279,6 @@ unsigned long i915_gem_shrink_all(struct drm_i915_private *dev_priv)
 	rcu_barrier(); /* wait until our RCU delayed slab frees are completed */
 
 	return freed;
-}
-
-static bool i915_gem_shrinker_lock(struct drm_device *dev, bool *unlock)
-{
-	switch (mutex_trylock_recursive(&dev->struct_mutex)) {
-	case MUTEX_TRYLOCK_FAILED:
-		return false;
-
-	case MUTEX_TRYLOCK_SUCCESS:
-		*unlock = true;
-		return true;
-
-	case MUTEX_TRYLOCK_RECURSIVE:
-		*unlock = false;
-		return true;
-	}
-
-	BUG();
 }
 
 static unsigned long

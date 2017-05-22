@@ -104,6 +104,7 @@ void drm_dev_printk(const struct device *dev, const char *level,
 }
 EXPORT_SYMBOL(drm_dev_printk);
 
+#ifdef __FreeBSD__
 void drm_printk(const char *level, unsigned int category,
 		const char *function_name, const char *prefix,
 		const char *format, ...)
@@ -119,9 +120,6 @@ void drm_printk(const char *level, unsigned int category,
 	vaf.fmt = format;
 	vaf.va = &args;
 
-#ifdef __linux__			
-	printk("%s" DRM_PRINTK_FMT, level, function_name, prefix, &vaf);
-#else
 	if (SCHEDULER_STOPPED() || kdb_active) {
 		printf(" ");
 		return;
@@ -130,10 +128,31 @@ void drm_printk(const char *level, unsigned int category,
 		return;
 	printf("[" DRM_NAME ":%s] ", function_name);
 	vprintf(format, args);
-#endif
+	va_end(args);
+}
+#else
+void drm_printk(const char *level, unsigned int category,
+		const char *format, ...)
+{
+	struct va_format vaf;
+	va_list args;
+
+	if (category != DRM_UT_NONE && !(drm_debug & category))
+		return;
+
+	va_start(args, format);
+	vaf.fmt = format;
+	vaf.va = &args;
+
+	printk("%s" "[" DRM_NAME ":%ps]%s %pV",
+	       level, __builtin_return_address(0),
+	       strcmp(level, KERN_ERR) == 0 ? " *ERROR*" : "", &vaf);
+
 	va_end(args);
 }
 EXPORT_SYMBOL(drm_printk);
+#endif
+
 
 /*
  * DRM Minors

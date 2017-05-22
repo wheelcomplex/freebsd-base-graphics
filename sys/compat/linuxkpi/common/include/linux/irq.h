@@ -7,6 +7,7 @@
 #include <linux/spinlock.h>
 #include <linux/gfp.h>
 #include <linux/irqhandler.h>
+#include <linux/irqreturn.h>
 #include <linux/errno.h>
 #include <linux/wait.h>
 #include <linux/io.h>
