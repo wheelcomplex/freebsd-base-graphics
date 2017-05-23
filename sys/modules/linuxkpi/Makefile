@@ -31,6 +31,7 @@ SRCS=	linux_acpi.c \
 	linux_slab.c \
 	linux_sort.c \
 	linux_stubs.c \
+	linux_sync_file.c \
 	linux_sysfs.c \
 	linux_tasklet.c \
 	linux_usb.c \
