@@ -58,9 +58,10 @@
 	linux_copyout(&(__x), (_p), sizeof(*(_p)));	\
 })
 #define	get_user(_x, _p)	linux_copyin((_p), &(_x), sizeof(*(_p)))
-#define	put_user(_x, _p)	linux_copyout(&(_x), (_p), sizeof(*(_p)))
+#define	put_user(_x, _p)	__put_user(_x, _p)
 #define	clear_user(...)		linux_clear_user(__VA_ARGS__)
 #define	access_ok(...)		linux_access_ok(__VA_ARGS__)
+
 
 extern int linux_copyin(const void *uaddr, void *kaddr, size_t len);
 extern int linux_copyout(const void *kaddr, void *uaddr, size_t len);
