@@ -47,7 +47,7 @@ struct irq_ent {
 	struct device	*dev;
 	struct resource	*res;
 	void		*arg;
-	irqreturn_t	(*handler)(int, void *);
+	irq_handler_t handler;
 	void		*tag;
 	unsigned int	irq;
 };

@@ -27,6 +27,8 @@
 #ifndef _DRM_DRV_H_
 #define _DRM_DRV_H_
 
+#include "opt_compat.h"
+
 #include <linux/list.h>
 #include <linux/irqreturn.h>
 

@@ -10,7 +10,4 @@ enum irqreturn {
 typedef enum irqreturn irqreturn_t;
 #define IRQ_RETVAL(x)	((x) ? IRQ_HANDLED : IRQ_NONE)
 
-// Previously this in lkpi
-/* #define	IRQ_RETVAL(x)	((x) != IRQ_NONE) */
-
 #endif
