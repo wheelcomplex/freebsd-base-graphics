@@ -107,7 +107,7 @@ MALLOC_DEFINE(M_LCINT, "linuxint", "Linux compat internal");
 
 static void *linux_cdev_handle_find(void *handle);
 
-struct cpuinfo_x86 boot_cpu_data; 
+struct cpuinfo_x86 boot_cpu_data;
 
 struct kobject linux_class_root;
 struct device linux_root_device;
@@ -123,7 +123,7 @@ struct ida *hwmon_idap;
 DEFINE_IDA(hwmon_ida);
 
 /*
- * XXX need to define irq_idr 
+ * XXX need to define irq_idr
  */
 
 struct rendezvous_state {
@@ -278,7 +278,7 @@ kobject_add_complete(struct kobject *kobj, struct kobject *parent)
 		}
 		if (error)
 			sysfs_remove_dir(kobj);
-		
+
 	}
 	if (error == 0)
 		kobj->state_in_sysfs = 1;
@@ -521,7 +521,7 @@ vm_area_set_object_bounds(vm_map_t map, vm_object_t obj, struct vm_area_struct *
 {
 	vm_map_entry_t entry;
 	int needunlock = 0;
-	
+
 	if (__predict_true(vmap->vm_cached_map == map))
 		return;
 	if (!sx_xlocked(&map->lock)) {
@@ -550,7 +550,7 @@ linux_cdev_pager_fault(vm_object_t vm_obj, vm_ooffset_t offset, int prot, vm_pag
 
 	vmap  = vm_obj->handle;
 	/*
-	 * We can be fairly certain that these aren't 
+	 * We can be fairly certain that these aren't
 	 * the pages we're looking for.
 	 */
 	if (mres) {
@@ -587,8 +587,8 @@ retry:
 	/*
 	 * The VM has helpfully given us pages, but device memory
 	 * is not fungible. Thus we need to remove them from the object
-	 * in order to replace them with device addresses that we can 
-	 * actually use. We don't free them unless we succeed, so that 
+	 * in order to replace them with device addresses that we can
+	 * actually use. We don't free them unless we succeed, so that
 	 * there is still a valid result page on failure.
 	 */
 	vm_page_lock(*mres);
@@ -626,7 +626,7 @@ linux_cdev_pager_populate(vm_object_t vm_obj, vm_pindex_t pidx, int fault_type,
 	linux_set_current(curthread);
 
 	vmap = linux_cdev_handle_find(vm_obj->handle);
-	vmf.virtual_address = (void *)(pidx << PAGE_SHIFT);
+	vmf.address = (pidx << PAGE_SHIFT);
 	vmf.flags = (fault_type & VM_PROT_WRITE) ? FAULT_FLAG_WRITE : 0;
 	memcpy(&cvma, vmap, sizeof(*vmap));
 	MPASS(cvma.vm_private_data == vm_obj->handle);
@@ -714,7 +714,7 @@ linux_cdev_handle_remove(void *handle)
 {
 	struct lcdev_handle_ref *r;
 
-	rw_wlock(&linux_global_rw);	
+	rw_wlock(&linux_global_rw);
 	TAILQ_FOREACH(r, &lcdev_handles, next)
 		if (r->handle == handle)
 			break;
@@ -879,7 +879,7 @@ linux_dev_close(struct cdev *dev, int fflag, int devtype, struct thread *td)
 		return (error);
 	filp->f_flags = file->f_flag;
         devfs_clear_cdevpriv();
-        
+
 
 	return (0);
 }
@@ -1468,7 +1468,7 @@ mod_timer(struct timer_list *timer, unsigned long expires)
 {
 
 	timer->expires = expires;
-	callout_reset(&timer->timer_callout,		      
+	callout_reset(&timer->timer_callout,
 	    linux_timer_jiffies_until(expires),
 	    &linux_timer_callback_wrapper, timer);
 }
@@ -1900,7 +1900,7 @@ static atomic_t entry_count;
 static void
 async_run_entry_fn(struct work_struct *work)
 {
-	struct async_entry *entry; 	
+	struct async_entry *entry;
 
 	linux_set_current(curthread);
 	entry  = container_of(work, struct async_entry, work);
