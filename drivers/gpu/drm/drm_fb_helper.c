@@ -1584,6 +1584,7 @@ static int drm_fb_helper_single_fb_probe(struct drm_fb_helper *fb_helper,
 // Is this for fbsd (merge conflict 4.10-rc1 says remove it)
 #pragma GCC warning "Confirm this"
 #ifdef __FreeBSD__
+	struct fb_info *info;
 	info = fb_helper->fbdev;
 
 	info->fbio.fb_video_dev = device_get_parent(fb_helper->dev->dev->bsddev);
