@@ -31,10 +31,11 @@
 #include "amdgpu_pll.h"
 #include "amdgpu_connectors.h"
 
-// XXX Safe to remove this?
+// XXX Safe to remove these?
 /* #include "si/si_reg.h" */
 /* #include "si/sid.h" */
-/* #include "dce_v6_0.h" */
+
+#include "dce_v6_0.h"
 
 #include "bif/bif_3_0_d.h"
 #include "bif/bif_3_0_sh_mask.h"

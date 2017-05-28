@@ -63,6 +63,10 @@
 #include "gpu_scheduler.h"
 #include "amdgpu_virt.h"
 
+#ifdef __FreeBSD__
+#define printk_ratelimit(x) printf("%s\n", __func__)
+#endif
+
 #define firmware linux_firmware
 /*
  * Modules parameters.
