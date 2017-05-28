@@ -22,6 +22,7 @@
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
+#include <asm/uaccess.h>
 #ifdef __linux__
 #include <linux/anon_inodes.h>
 #endif
@@ -38,8 +39,8 @@ static struct sync_file *sync_file_alloc(void)
 	if (!sync_file)
 		return NULL;
 
-	sync_file->file = anon_inode_getfile("sync_file", &sync_file_fops,
-					     sync_file, 0);
+	#pragma GCC warning "anon_inode_getfile() need impl!"
+	sync_file->file = NULL; //anon_inode_getfile("sync_file", &sync_file_fops, sync_file, 0);
 	if (IS_ERR(sync_file->file))
 		goto err;
 
@@ -85,7 +86,7 @@ struct sync_file *sync_file_create(struct dma_fence *fence)
 
 	snprintf(sync_file->name, sizeof(sync_file->name), "%s-%s%llu-%d",
 		 fence->ops->get_driver_name(fence),
-		 fence->ops->get_timeline_name(fence), fence->context,
+			 fence->ops->get_timeline_name(fence), (unsigned long long)fence->context,
 		 fence->seqno);
 
 	return sync_file;
@@ -470,4 +471,3 @@ static const struct file_operations sync_file_fops = {
 	.unlocked_ioctl = sync_file_ioctl,
 	.compat_ioctl = sync_file_ioctl,
 };
-

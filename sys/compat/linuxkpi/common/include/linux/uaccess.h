@@ -68,6 +68,7 @@ extern int linux_copyout(const void *kaddr, void *uaddr, size_t len);
 extern size_t linux_clear_user(void *uaddr, size_t len);
 extern int linux_access_ok(int rw, const void *uaddr, size_t len);
 
+
 /*
  * NOTE: Each pagefault_disable() call must have a corresponding
  * pagefault_enable() call in the same scope. The former creates a new
