@@ -54,8 +54,8 @@ hrtimer_start_range_ns(struct hrtimer *timer, ktime_t tim, u64 range_ns, const e
 	if (mode == HRTIMER_MODE_ABS ||
 	    mode == HRTIMER_MODE_ABS_PINNED)
 		flags |= C_ABSOLUTE;
-		
-	callout_reset_sbt(c, tim.tv64*SBT_1NS, range_ns*SBT_1NS,  __hrtimer_handler, timer, flags);
+
+	callout_reset_sbt(c, tim*SBT_1NS, range_ns*SBT_1NS,  __hrtimer_handler, timer, flags);
 }
 
 bool
@@ -77,5 +77,5 @@ hrtimer_cancel(struct hrtimer *timer)
 		if (rc >= 0)
 			return (rc);
 		cpu_spinwait();
-	}	
+	}
 }
