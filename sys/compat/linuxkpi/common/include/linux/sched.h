@@ -140,17 +140,17 @@ void linux_send_sig(int signo, struct task_struct *task);
 
 #define	signal_pending(task)		linux_signal_pending(task)
 #define	fatal_signal_pending(task)	linux_fatal_signal_pending(task)
-#define	signal_pending_state(state, task)	\
+#define	signal_pending_state(state, task)		\
 	linux_signal_pending_state(state, task)
-#define	send_sig(signo, task, priv) do {	\
-	CTASSERT(priv == 0);			\
-	linux_send_sig(signo, task);		\
+#define	send_sig(signo, task, priv) do {		\
+	CTASSERT(priv == 0);				\
+	linux_send_sig(signo, task);			\
 } while (0)
 
-long linux_schedule_timeout(long timeout);
+int linux_schedule_timeout(long timeout);
 
 #define	schedule()					\
-	linux_schedule_timeout(MAX_SCHEDULE_TIMEOUT)
+	(void)linux_schedule_timeout(MAX_SCHEDULE_TIMEOUT)
 #define	schedule_timeout(timeout)			\
 	linux_schedule_timeout(timeout)
 #define	schedule_timeout_killable(timeout)		\
