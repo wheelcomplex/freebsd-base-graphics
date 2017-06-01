@@ -43,9 +43,8 @@
 #include <linux/wait.h>
 #include <linux/dcache.h>
 #include <linux/semaphore.h>
-#include <linux/list.h>
 #include <linux/atomic.h>
-#include <linux/mutex.h>
+#include <linux/spinlock.h>
 #include <linux/interrupt.h>
 
 struct module;
@@ -58,7 +57,6 @@ struct pipe_inode_info;
 struct vm_area_struct;
 struct poll_table_struct;
 struct files_struct;
-struct super_block;
 
 #define	inode	vnode
 #define	i_cdev	v_rdev
@@ -97,10 +95,10 @@ struct linux_file {
 	vm_object_t	f_mapping;
 
 	/* kqfilter support */
-	struct list_head f_entry;
-	struct filterops *f_kqfiltops;
-	/* protects f_sigio.si_note and f_entry */
-	spinlock_t	f_lock;
+	struct filterops *f_kqfiltops_read;
+	struct filterops *f_kqfiltops_write;
+	/* protects f_selinfo.si_note */
+	spinlock_t	f_kqlock;
 };
 
 #define f_inode		f_vnode
@@ -264,6 +262,18 @@ get_file(struct linux_file *f)
 
 	refcount_acquire(f->_file == NULL ? &f->f_count : &f->_file->f_count);
 	return (f);
+}
+
+static inline struct inode *
+igrab(struct inode *inode)
+{
+	int error;
+
+	error = vget(inode, 0, curthread);
+	if (error)
+		return (NULL);
+
+	return (inode);
 }
 
 extern loff_t default_llseek(struct file *file, loff_t offset, int whence);

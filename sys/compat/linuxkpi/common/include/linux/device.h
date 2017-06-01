@@ -68,24 +68,6 @@ struct class {
 	const struct dev_pm_ops *pm;
 };
 
-struct dev_pm_ops {
-	int (*suspend)(struct device *dev);
-	int (*resume)(struct device *dev);
-	int (*freeze)(struct device *dev);
-	int (*thaw)(struct device *dev);
-	int (*poweroff)(struct device *dev);
-	int (*restore)(struct device *dev);
-	int (*suspend_late)(struct device *dev);
-	int (*resume_early)(struct device *dev);
-	int (*freeze_late)(struct device *dev);
-	int (*thaw_early)(struct device *dev);
-	int (*poweroff_late)(struct device *dev);
-	int (*restore_early)(struct device *dev);
-	int (*runtime_suspend)(struct device *dev);
-	int (*runtime_resume)(struct device *dev);
-	int (*runtime_idle)(struct device *dev);
-};
-
 struct device_driver {
 	const char		*name;
 	struct bus_type		*bus;
@@ -96,12 +78,8 @@ struct device_driver {
 	int (*suspend) (struct device *dev, pm_message_t state);
 	int (*resume) (struct device *dev);
 	const struct attribute_group **groups;
-
 	const struct dev_pm_ops *pm;
 };
-
-typedef void (*dr_release_t)(struct device *dev, void *res);
-typedef int (*dr_match_t)(struct device *dev, void *res, void *match_data);
 
 #define DEVICE_ATTR(_name, _mode, _show, _store) \
 	struct device_attribute dev_attr_##_name = __ATTR(_name, _mode, _show, _store)
@@ -160,6 +138,24 @@ struct dev_pm_info {
 	bool		is_suspended;
 };
 
+struct dev_pm_ops {
+	int (*suspend)(struct device *dev);
+	int (*suspend_late)(struct device *dev);
+	int (*resume)(struct device *dev);
+	int (*resume_early)(struct device *dev);
+	int (*freeze)(struct device *dev);
+	int (*freeze_late)(struct device *dev);
+	int (*thaw)(struct device *dev);
+	int (*thaw_early)(struct device *dev);
+	int (*poweroff)(struct device *dev);
+	int (*poweroff_late)(struct device *dev);
+	int (*restore)(struct device *dev);
+	int (*restore_early)(struct device *dev);
+	int (*runtime_suspend)(struct device *dev);
+	int (*runtime_resume)(struct device *dev);
+	int (*runtime_idle)(struct device *dev);
+};
+
 struct device {
 	struct device	*parent;
 	struct list_head irqents;
@@ -176,24 +172,18 @@ struct device {
 	struct class	*class;
 	void		(*release)(struct device *dev);
 	struct kobject	kobj;
+	uint64_t	*dma_mask;
 	void		*driver_data;
 	unsigned int	irq;
 #define	LINUX_IRQ_INVALID	65535
 	unsigned int	msix;
 	unsigned int	msix_max;
+	const struct attribute_group **groups;
 	struct device_type *type;
-	uint64_t	*dma_mask;
-	u64		coherent_dma_mask;/* Like dma_mask, but for
-					     alloc_coherent mappings as
-					     not all hardware supports
-					     64 bit addresses for consistent
-					     allocations such descriptors. */
 	struct device_node	*of_node; /* associated device tree node */
 	struct fwnode_handle	*fwnode;
 	struct device_driver *driver;	/* which driver has allocated this device */
 	struct dev_pm_info	power;
-	const struct attribute_group **groups;	/* optional groups */
-	const char		*init_name; /* initial name of the device */
 	struct bus_type	*bus;		/* type of bus device is on */
 
 	spinlock_t		devres_lock;
@@ -565,6 +555,7 @@ class_create(struct module *owner, const char *name)
 static inline void
 class_destroy(struct class *class)
 {
+
 	if (class == NULL)
 		return;
 	class_unregister(class);
@@ -578,7 +569,6 @@ device_create_file(struct device *dev, const struct device_attribute *attr)
 		return sysfs_create_file(&dev->kobj, &attr->attr);
 	return -EINVAL;
 }
-
 
 static inline void
 device_remove_file(struct device *dev, const struct device_attribute *attr)

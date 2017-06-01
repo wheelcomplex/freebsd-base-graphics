@@ -254,56 +254,20 @@ drm_clflush_virt_range(void *addr, unsigned long length)
 }
 #endif
 
-void
-hex_dump_to_buffer(const void *buf, size_t len, int rowsize, int groupsize,
-    char *linebuf, size_t linebuflen, bool ascii __unused)
-{
-	int i, j, c;
-
-	i = j = 0;
-
-	while (i < len && j <= linebuflen) {
-		c = ((const char *)buf)[i];
-
-		if (i != 0) {
-			if (i % rowsize == 0) {
-				/* Newline required. */
-				sprintf(linebuf + j, "\n");
-				++j;
-			} else if (i % groupsize == 0) {
-				/* Space required. */
-				sprintf(linebuf + j, " ");
-				++j;
-			}
-		}
-
-		if (j > linebuflen - 4)
-			break;
-
-		sprintf(linebuf + j, "%02X", c);
-		j += 2;
-
-		++i;
-	}
-
-	if (j <= linebuflen)
-		sprintf(linebuf + j, "\n");
-}
-
 static void
 drm_kqfilter_detach(struct knote *kn)
 {
 	struct linux_file *filp = kn->kn_hook;
 
-	spin_lock(&filp->f_lock);
+	spin_lock(&filp->f_kqlock);
 	knlist_remove(&filp->f_selinfo.si_note, kn, 1);
-	spin_unlock(&filp->f_lock);
+	spin_unlock(&filp->f_kqlock);
 }
 
 #ifdef DRM_KQ_DEBUG
-#define PRINTF printf
+#define PRINTF(...) printf(__VA_ARGS__)
 #else
-#define PRINTF(...)
+#define PRINTF(...) do { } while (0)
 #endif
 
 static int
@@ -339,7 +303,7 @@ static struct filterops drm_kqfiltops_read = {
 void
 drm_kqregister(struct linux_file *filp)
 {
-	filp->f_kqfiltops = &drm_kqfiltops_read;
+	filp->f_kqfiltops_read = &drm_kqfiltops_read;
 }
 
 #define to_drm_minor(d) container_of(d, struct drm_minor, kdev)
