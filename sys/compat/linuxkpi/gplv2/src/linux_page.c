@@ -42,6 +42,7 @@
 
 #include <linux/io.h>
 #include <linux/mm.h>
+#include <linux/page.h>
 #include <linux/pfn_t.h>
 #include <linux/vmalloc.h>
 
@@ -53,56 +54,6 @@
 
 extern u_int	cpu_feature;
 extern u_int	cpu_stdext_feature;
-
-#if defined(__i386__) || defined(__amd64__)
-static int
-needs_set_memattr(vm_page_t m, vm_memattr_t attr)
-{
-	return (m->md.pat_mode != attr);
-}
-#endif
-
-static int
-vm_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr, unsigned long pfn, pgprot_t pgprot)
-{
-	vm_object_t vm_obj;
-	vm_page_t page;
-	pmap_t pmap = vma->vm_cached_map->pmap;
-	vm_memattr_t attr = pgprot2cachemode(pgprot);
-	vm_offset_t off;
-
-	vm_obj = vma->vm_obj;
-	page = PHYS_TO_VM_PAGE((pfn << PAGE_SHIFT));
-	off = OFF_TO_IDX(addr - vma->vm_start);
-
-	MPASS(off <= OFF_TO_IDX(vma->vm_end));
-#if defined(__i386__) || defined(__amd64__)
-	if (needs_set_memattr(page, attr))
-		pmap_page_set_memattr(page, attr);
-#endif
-	if ((page->flags & PG_FICTITIOUS) && ((page->oflags & VPO_UNMANAGED) == 0))
-		page->oflags |= VPO_UNMANAGED;
-	page->valid = VM_PAGE_BITS_ALL;
-	pmap_enter(pmap, addr, page, pgprot & VM_PROT_ALL, (pgprot & VM_PROT_ALL) | PMAP_ENTER_NOSLEEP, 0);
-	(*vma->vm_pfn_pcount)++;
-	return (0);
-}
-
-int
-vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr, unsigned long pfn)
-{
-	return (vm_insert_pfn_prot(vma, addr, pfn, vma->vm_page_prot));
-}
-
-int
-vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr, pfn_t pfn)
-{
-	unsigned long pfnval;
-
-	pfnval = pfn.val & ~PFN_FLAGS_MASK;
-	return (vm_insert_pfn_prot(vma, addr, pfnval, vma->vm_page_prot));
-}
-
 
 void
 __linux_clflushopt(u_long addr)
@@ -328,14 +279,6 @@ kunmap_atomic(void *vaddr)
 
 	sched_unpin();
 #endif
-}
-
-void
-page_cache_release(vm_page_t page)
-{
-	vm_page_lock(page);
-	vm_page_unwire(page, PQ_INACTIVE);
-	vm_page_unlock(page);
 }
 
 void *
