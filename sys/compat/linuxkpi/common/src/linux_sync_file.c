@@ -23,9 +23,7 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 #include <asm/uaccess.h>
-#ifdef __linux__
 #include <linux/anon_inodes.h>
-#endif
 #include <linux/sync_file.h>
 #include <uapi/linux/sync_file.h>
 
@@ -40,7 +38,7 @@ static struct sync_file *sync_file_alloc(void)
 		return NULL;
 
 	#pragma GCC warning "anon_inode_getfile() need impl!"
-	sync_file->file = NULL; //anon_inode_getfile("sync_file", &sync_file_fops, sync_file, 0);
+	sync_file->file = anon_inode_getfile("sync_file", &sync_file_fops, sync_file, 0);
 	if (IS_ERR(sync_file->file))
 		goto err;
 
