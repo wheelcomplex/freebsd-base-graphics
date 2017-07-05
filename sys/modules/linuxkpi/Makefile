@@ -3,6 +3,7 @@
 
 KMOD=	linuxkpi
 SRCS=	linux_acpi.c \
+	linux_anon_inodes.c \
 	linux_compat.c \
 	linux_current.c \
 	linux_device.c \

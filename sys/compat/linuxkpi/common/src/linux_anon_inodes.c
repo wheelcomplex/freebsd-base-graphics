@@ -1,59 +1,57 @@
+// FreeBSD
+#include <sys/param.h>
+#include <sys/systm.h>
+#include <sys/malloc.h>
+#include <sys/kernel.h>
+#include <sys/types.h>
+#include <sys/namei.h>
+#include <sys/vnode.h>
+
+// Linux
 #include <linux/anon_inodes.h>
 #include <linux/file.h>
 #include <linux/fs.h>
+
 
 struct file *
 anon_inode_getfile(const char *name,
 				   const struct file_operations *fops,
 				   void *priv, int flags) {
 
-	/* struct qstr this; */
-	/* struct path path; */
-	struct file *file;
+	struct thread *td = curthread;
+	struct nameidata nd;
+	struct linux_file *fp;
+	int error;
+	int mode = 0;
+	int cmode = 0;
+	u_int vn_open_flags = 0;
 
-	/* if (IS_ERR(anon_inode_inode)) */
-	/* 	return ERR_PTR(-ENODEV); */
+	if (td->td_proc->p_fd->fd_rdir == NULL)
+		td->td_proc->p_fd->fd_rdir = rootvnode;
+	if (td->td_proc->p_fd->fd_cdir == NULL)
+		td->td_proc->p_fd->fd_cdir = rootvnode;
 
-	/* if (fops->owner && !try_module_get(fops->owner)) */
-	/* 	return ERR_PTR(-ENOENT); */
+	flags = FFLAGS(flags);
 
-	/*
-	 * Link the inode to a directory entry by creating a unique name
-	 * using the inode sequence number.
-	 */
-	/* file = ERR_PTR(-ENOMEM); */
-	/* this.name = name; */
-	/* this.len = strlen(name); */
-	/* this.hash = 0; */
-	/* path.dentry = d_alloc_pseudo(anon_inode_mnt->mnt_sb, &this); */
-	/* if (!path.dentry) */
-		/* goto err_module; */
+	// Create file descriptor
+	fp = alloc_file(mode, fops);
+	if(!fp)
+		return (NULL);
+	fp->f_flags = flags & FMASK;
 
-	/* path.mnt = mntget(anon_inode_mnt); */
-	/*
-	 * We know the anon_inode inode count is always greater than zero,
-	 * so ihold() is safe.
-	 */
-	/* ihold(anon_inode_inode); */
+	NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, name, td);
+	error = vn_open_cred(&nd, &flags, cmode, vn_open_flags, td->td_ucred, fp->_file);
+	NDFREE(&nd, NDF_ONLY_PNBUF);
+	if (error != 0)
+		return (NULL);
 
-	/* d_instantiate(path.dentry, anon_inode_inode); */
+	fp->f_vnode = nd.ni_vp;
+	fp->f_flags = flags & (O_ACCMODE | O_NONBLOCK);
+	fp->private_data = priv;
+	fp->f_op = fops;
+	fp->f_mode = mode;
 
-	file = alloc_file(OPEN_FMODE(flags), fops);
-	if (IS_ERR(file))
-		goto err_dput;
+	VOP_UNLOCK(nd.ni_vp, 0);
 
-	/* file->f_mapping = anon_inode_inode->i_mapping; */
-
-	file->f_flags = flags & (O_ACCMODE | O_NONBLOCK);
-	file->private_data = priv;
-
-	return file;
-
-err_dput:
-	/* path_put(&path); */
-err_module:
-	module_put(fops->owner);
-	return file;
-
-
+	return fp;
 }
