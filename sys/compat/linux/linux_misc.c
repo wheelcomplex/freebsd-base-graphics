@@ -2462,6 +2462,7 @@ linux_getrandom(struct thread *td, struct linux_getrandom_args *args)
 {
 	struct uio uio;
 	struct iovec iov;
+	int error;
 
 	if (args->flags & ~(LINUX_GRND_NONBLOCK|LINUX_GRND_RANDOM))
 		return (EINVAL);
@@ -2478,19 +2479,18 @@ linux_getrandom(struct thread *td, struct linux_getrandom_args *args)
 	uio.uio_rw = UIO_READ;
 	uio.uio_td = td;
 
-	return (read_random_uio(&uio, args->flags & LINUX_GRND_NONBLOCK));
+	error = read_random_uio(&uio, args->flags & LINUX_GRND_NONBLOCK);
+	if (error == 0)
+		td->td_retval[0] = args->count - uio.uio_resid;
+	return (error);
 }
 
 int
 linux_mincore(struct thread *td, struct linux_mincore_args *args)
 {
-	struct mincore_args bsd_args;
 
 	/* Needs to be page-aligned */
 	if (args->start & PAGE_MASK)
 		return (EINVAL);
-	bsd_args.addr = PTRIN(args->start);
-	bsd_args.len = args->len;
-	bsd_args.vec = args->vec;
-	return (sys_mincore(td, &bsd_args));
+	return (kern_mincore(td, args->start, args->len, args->vec));
 }

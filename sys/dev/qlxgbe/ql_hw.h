@@ -748,6 +748,7 @@ typedef struct _q80_rcv_stats {
 	uint64_t	lro_flows_deleted;
 	uint64_t	lro_flows_active;
 	uint64_t	pkts_droped_unknown;
+	uint64_t	pkts_cnt_oversized;
 } __packed q80_rcv_stats_t;
 
 typedef struct _q80_xmt_stats {
@@ -1674,6 +1675,8 @@ typedef struct _qla_hw {
 	uint32_t	max_tx_segs;
 	uint32_t	min_lro_pkt_size;
 	
+	uint32_t        enable_hw_lro;
+	uint32_t        enable_soft_lro;
 	uint32_t        enable_9kb;
 
 	uint32_t	user_pri_nic;

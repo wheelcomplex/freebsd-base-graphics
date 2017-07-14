@@ -36,59 +36,64 @@
 #include <sys/proc.h>
 #include <sys/sched.h>
 
-#include <linux/types.h>
 #include <linux/compat.h>
 #include <linux/completion.h>
 #include <linux/pid.h>
 #include <linux/slab.h>
 #include <linux/mm_types.h>
-#include <linux/hrtimer.h>
 #include <linux/time64.h>
+#include <linux/string.h>
 #include <linux/bitmap.h>
 #include <linux/atomic.h>
 #include <linux/smp.h>
 
-#define	TASK_RUNNING		0
-#define	TASK_INTERRUPTIBLE	1
-#define	TASK_UNINTERRUPTIBLE	2
-#define	TASK_KILLABLE           3
-#define	TASK_DEAD		64
-#define	TASK_WAKEKILL		128
-#define	TASK_WAKING		256
-#define	TASK_PARKED		512
-#define	TASK_NORMAL		(TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
+#include <asm/atomic.h>
 
-#define	TASK_COMM_LEN 16
+#define	MAX_SCHEDULE_TIMEOUT	INT_MAX
+
+#define	TASK_RUNNING		0x0000
+#define	TASK_INTERRUPTIBLE	0x0001
+#define	TASK_UNINTERRUPTIBLE	0x0002
+#define	TASK_NORMAL		(TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
+#define	TASK_WAKING		0x0100
+#define	TASK_PARKED		0x0200
+
+#define	TASK_COMM_LEN		(MAXCOMLEN + 1)
 
 struct seq_file;
-struct wait_queue_head;
 
 struct task_struct {
 	struct thread *task_thread;
 	struct mm_struct *mm;
+
+	/* kthread fields */
 	linux_task_fn_t *task_fn;
 	void   *task_data;
 	int	task_ret;
 	atomic_t usage;
-	atomic_t state;
 	atomic_t kthread_flags;
-	const char *comm;
-	struct wait_queue_head *sleep_wq;
+
+	atomic_t state;
 	pid_t	pid;	/* BSD thread ID */
+	const char *comm;
 	int	prio;
-	int	static_prio;
-	int	normal_prio;
+
 	void   *bsd_ioctl_data;
 	unsigned bsd_ioctl_len;
-	struct mtx sleep_lock;
+
 	struct completion parked;
 	struct completion exited;
+	TAILQ_ENTRY(task_struct) rcu_entry;
+	int rcu_recurse;
 };
 
-#define	current		((struct task_struct *)curthread->td_lkpi_task)
+#define	current	({ \
+	struct thread *__td = curthread; \
+	linux_set_current(__td); \
+	((struct task_struct *)__td->td_lkpi_task); \
+})
 
-#define	task_pid_group_leader(task) \
-	FIRST_THREAD_IN_PROC((task)->task_thread->td_proc)->td_tid
+#define	task_pid_group_leader(task) (task)->task_thread->td_proc->p_pid
 #define	task_pid(task)		((task)->pid)
 #define	task_pid_nr(task)	((task)->pid)
 #define	get_pid(x)		(x)
@@ -114,26 +119,6 @@ put_task_struct(struct task_struct *task)
 		linux_free_current(task);
 }
 
-extern u64 cpu_clock(int cpu);
-extern u64 running_clock(void);
-extern u64 sched_clock_cpu(int cpu);
-
-static inline int
-sched_setscheduler(struct task_struct *t, int policy,
-    const struct sched_param *param)
-{
-	UNIMPLEMENTED();
-	return (0);
-}
-
-static inline int
-sched_setscheduler_nocheck(struct task_struct *t, int policy,
-    const struct sched_param *param)
-{
-	UNIMPLEMENTED();
-	return (0);
-}
-
 static inline u64
 local_clock(void)
 {
@@ -145,96 +130,47 @@ local_clock(void)
 
 #define	cond_resched()	if (!cold)	sched_relinquish(curthread)
 
+#define	need_resched()	(curthread->td_flags & TDF_NEEDRESCHED)
+#define	yield()		kern_yield(PRI_UNCHANGED)
 #define	sched_yield()	sched_relinquish(curthread)
 
+bool linux_signal_pending(struct task_struct *task);
+bool linux_fatal_signal_pending(struct task_struct *task);
+bool linux_signal_pending_state(long state, struct task_struct *task);
+void linux_send_sig(int signo, struct task_struct *task);
 
-static inline int
-send_sig(int signo, struct task_struct *t, int priv)
-{
-	/* Only support signalling current process right now  */
-	MPASS(t == current);
+#define	signal_pending(task)		linux_signal_pending(task)
+#define	fatal_signal_pending(task)	linux_fatal_signal_pending(task)
+#define	signal_pending_state(state, task)		\
+	linux_signal_pending_state(state, task)
+#define	send_sig(signo, task, priv) do {		\
+	CTASSERT(priv == 0);				\
+	linux_send_sig(signo, task);			\
+} while (0)
 
-	PROC_LOCK(curproc);
-	tdsignal(curthread, signo);
-	PROC_UNLOCK(curproc);
-	return (0);
-}
+int linux_schedule_timeout(int timeout);
 
-static inline int
-signal_pending(struct task_struct *p)
-{
-	return SIGPENDING(p->task_thread);
-}
+#define	schedule()					\
+	(void)linux_schedule_timeout(MAX_SCHEDULE_TIMEOUT)
+#define	schedule_timeout(timeout)			\
+	linux_schedule_timeout(timeout)
+#define	schedule_timeout_killable(timeout)		\
+	schedule_timeout_uninterruptible(timeout)
+#define	schedule_timeout_interruptible(timeout) ({	\
+	set_current_state(TASK_INTERRUPTIBLE);		\
+	schedule_timeout(timeout);			\
+})
+#define	schedule_timeout_uninterruptible(timeout) ({	\
+	set_current_state(TASK_UNINTERRUPTIBLE);	\
+	schedule_timeout(timeout);			\
+})
 
-static inline int
-__fatal_signal_pending(struct task_struct *p)
-{
-	return (SIGISMEMBER(p->task_thread->td_siglist, SIGKILL));
-}
+#define	io_schedule()			schedule()
+#define	io_schedule_timeout(timeout)	schedule_timeout(timeout)
 
-static inline int
-fatal_signal_pending(struct task_struct *p)
-{
-	return signal_pending(p) && __fatal_signal_pending(p);
-}
+#define	yield() kern_yield(PRI_UNCHANGED)
 
-static inline int
-signal_pending_state(long state, struct task_struct *p)
-{
-	if (!(state & (TASK_INTERRUPTIBLE | TASK_WAKEKILL)))
-		return 0;
-	if (!signal_pending(p))
-		return 0;
+#define	io_schedule()			schedule()
+#define	io_schedule_timeout(timeout)	schedule_timeout(timeout)
 
-	return (state & TASK_INTERRUPTIBLE) || __fatal_signal_pending(p);
-}
-
-extern long schedule_timeout(long timeout);
-
-static inline long
-schedule_timeout_uninterruptible(long timeout)
-{
-	MPASS(current);
-	__set_current_state(TASK_UNINTERRUPTIBLE);
-	return (schedule_timeout(timeout));
-}
-
-static inline long
-schedule_timeout_interruptible(long timeout)
-{
-	MPASS(current);
-	__set_current_state(TASK_INTERRUPTIBLE);
-	return (schedule_timeout(timeout));
-}
-
-#define	need_resched() (curthread->td_flags & TDF_NEEDRESCHED)
-
-static inline long
-schedule_timeout_killable(long timeout)
-{
-	return (schedule_timeout(timeout));
-}
-
-#define	MAX_SCHEDULE_TIMEOUT	INT_MAX
-
-static inline long
-io_schedule_timeout(long timeout)
-{
-	return (schedule_timeout(timeout));
-}
-
-static inline void
-io_schedule(void)
-{
-	io_schedule_timeout(MAX_SCHEDULE_TIMEOUT);
-}
-
-static inline void
-schedule(void)
-{
-	schedule_timeout(MAX_SCHEDULE_TIMEOUT);
-}
-
-#define	yield() kern_yield(0)
-
-#endif					/* _LINUX_SCHED_H_ */
+#endif	/* _LINUX_SCHED_H_ */

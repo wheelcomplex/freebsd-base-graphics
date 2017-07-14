@@ -162,7 +162,7 @@ debugfs_create_dir(const char *name, struct dentry *parent)
 	struct dentry *dnode;
 	struct pfs_node *pnode;
 
-	dm = malloc(sizeof(struct dentry), M_DFSINT, M_NOWAIT|M_ZERO);
+	dm = malloc(sizeof(*dm), M_DFSINT, M_NOWAIT | M_ZERO);
 	if (dm == NULL)
 		return (NULL);
 	dnode = &dm->dm_dnode;
@@ -206,3 +206,4 @@ debugfs_uninit(PFS_INIT_ARGS)
 
 PSEUDOFS(debugfs, 1, PR_ALLOW_MOUNT_LINSYSFS);
 MODULE_DEPEND(debugfs, linuxkpi, 1, 1, 1);
+MODULE_DEPEND(debugfs, linuxkpi_gplv2, 1, 1, 1);

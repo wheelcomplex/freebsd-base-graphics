@@ -641,8 +641,15 @@ cam_periph_invalidate(struct cam_periph *periph)
 		return;
 
 	CAM_DEBUG(periph->path, CAM_DEBUG_INFO, ("Periph invalidated\n"));
-	if ((periph->flags & CAM_PERIPH_ANNOUNCED) && !rebooting)
-		xpt_denounce_periph(periph);
+	if ((periph->flags & CAM_PERIPH_ANNOUNCED) && !rebooting) {
+		struct sbuf sb;
+		char buffer[160];
+
+		sbuf_new(&sb, buffer, 160, SBUF_FIXEDLEN);
+		xpt_denounce_periph_sbuf(periph, &sb);
+		sbuf_finish(&sb);
+		sbuf_putbuf(&sb);
+	}
 	periph->flags |= CAM_PERIPH_INVALID;
 	periph->flags &= ~CAM_PERIPH_NEW_DEV_FOUND;
 	if (periph->periph_oninval != NULL)
@@ -654,6 +661,7 @@ static void
 camperiphfree(struct cam_periph *periph)
 {
 	struct periph_driver **p_drv;
+	struct periph_driver *drv;
 
 	cam_periph_assert(periph, MA_OWNED);
 	KASSERT(periph->periph_allocating == 0, ("%s%d: freed while allocating",
@@ -666,6 +674,15 @@ camperiphfree(struct cam_periph *periph)
 		printf("camperiphfree: attempt to free non-existant periph\n");
 		return;
 	}
+	/*
+	 * Cache a pointer to the periph_driver structure.  If a
+	 * periph_driver is added or removed from the array (see
+	 * periphdriver_register()) while we drop the toplogy lock
+	 * below, p_drv may change.  This doesn't protect against this
+	 * particular periph_driver going away.  That will require full
+	 * reference counting in the periph_driver infrastructure.
+	 */
+	drv = *p_drv;
 
 	/*
 	 * We need to set this flag before dropping the topology lock, to
@@ -701,8 +718,8 @@ camperiphfree(struct cam_periph *periph)
 	 */
 	xpt_lock_buses();
 
-	TAILQ_REMOVE(&(*p_drv)->units, periph, unit_links);
-	(*p_drv)->generation++;
+	TAILQ_REMOVE(&drv->units, periph, unit_links);
+	drv->generation++;
 
 	xpt_remove_periph(periph);
 

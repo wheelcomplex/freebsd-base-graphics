@@ -70,10 +70,7 @@ __FBSDID("$FreeBSD$");
 #include <nfsclient/nfs.h>
 #include <nfs/nfsdiskless.h>
 #ifdef DEV_APIC
-#include <sys/bus.h>
-#include <machine/intr_machdep.h>
 #include <x86/apicreg.h>
-#include <x86/apicvar.h>
 #endif
 #include <machine/cpu.h>
 #include <machine/pcb.h>
@@ -101,9 +98,6 @@ ASSYM(MD_LDT, offsetof(struct mdproc, md_ldt));
 ASSYM(TDF_ASTPENDING, TDF_ASTPENDING);
 ASSYM(TDF_NEEDRESCHED, TDF_NEEDRESCHED);
 
-ASSYM(V_TRAP, offsetof(struct vmmeter, v_trap));
-ASSYM(V_SYSCALL, offsetof(struct vmmeter, v_syscall));
-ASSYM(V_INTR, offsetof(struct vmmeter, v_intr));
 ASSYM(TD0_KSTACK_PAGES, TD0_KSTACK_PAGES);
 ASSYM(PAGE_SIZE, PAGE_SIZE);
 ASSYM(NPTEPG, NPTEPG);
@@ -222,15 +216,6 @@ ASSYM(PC_PRIVATE_TSS, offsetof(struct pcpu, pc_private_tss));
 #ifdef DEV_APIC
 ASSYM(LA_EOI, LAPIC_EOI * LAPIC_MEM_MUL);
 ASSYM(LA_ISR, LAPIC_ISR0 * LAPIC_MEM_MUL);
-
-ASSYM(IPI_INVLTLB, IPI_INVLTLB);
-ASSYM(IPI_INVLPG, IPI_INVLPG);
-ASSYM(IPI_INVLRNG, IPI_INVLRNG);
-ASSYM(IPI_INVLCACHE, IPI_INVLCACHE);
-ASSYM(IPI_BITMAP_VECTOR, IPI_BITMAP_VECTOR);
-ASSYM(IPI_STOP, IPI_STOP);
-ASSYM(IPI_SUSPEND, IPI_SUSPEND);
-ASSYM(IPI_RENDEZVOUS, IPI_RENDEZVOUS);
 #endif
 
 ASSYM(KCSEL, GSEL(GCODE_SEL, SEL_KPL));

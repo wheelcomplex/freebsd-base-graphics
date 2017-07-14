@@ -248,7 +248,7 @@ ncl_inactive(struct vop_inactive_args *ap)
 		} else
 			retv = TRUE;
 		if (retv == TRUE) {
-			(void)ncl_flush(vp, MNT_WAIT, NULL, ap->a_td, 1, 0);
+			(void)ncl_flush(vp, MNT_WAIT, ap->a_td, 1, 0);
 			(void)nfsrpc_close(vp, 1, ap->a_td);
 		}
 	}
@@ -259,10 +259,12 @@ ncl_inactive(struct vop_inactive_args *ap)
 
 	/*
 	 * NMODIFIED means that there might be dirty/stale buffers
-	 * associated with the NFS vnode.  None of the other flags are
-	 * meaningful after the vnode is unused.
+	 * associated with the NFS vnode.
+	 * NDSCOMMIT means that the file is on a pNFS server and commits
+	 * should be done to the DS.
+	 * None of the other flags are meaningful after the vnode is unused.
 	 */
-	np->n_flag &= NMODIFIED;
+	np->n_flag &= (NMODIFIED | NDSCOMMIT);
 	mtx_unlock(&np->n_mtx);
 	return (0);
 }

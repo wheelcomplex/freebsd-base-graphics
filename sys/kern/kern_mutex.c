@@ -186,7 +186,7 @@ void
 lock_spin(struct lock_object *lock, uintptr_t how)
 {
 
-	mtx_lock_spin((struct mtx*)lock);
+	panic("spin locks can only use msleep_spin");
 }
 
 uintptr_t
@@ -203,12 +203,8 @@ unlock_mtx(struct lock_object *lock)
 uintptr_t
 unlock_spin(struct lock_object *lock)
 {
-	struct mtx *m;
 
-	m = (struct mtx *)lock;
-	mtx_assert(m, MA_OWNED | MA_NOTRECURSED);
-	mtx_unlock_spin(m);
-	return (0);
+	panic("spin locks can only use msleep_spin");
 }
 
 #ifdef KDTRACE_HOOKS
@@ -237,7 +233,8 @@ __mtx_lock_flags(volatile uintptr_t *c, int opts, const char *file, int line)
 
 	m = mtxlock2mtx(c);
 
-	KASSERT(kdb_active != 0 || !TD_IS_IDLETHREAD(curthread),
+	KASSERT(kdb_active != 0 || SCHEDULER_STOPPED() ||
+	    !TD_IS_IDLETHREAD(curthread),
 	    ("mtx_lock() by idle thread %p on sleep mutex %s @ %s:%d",
 	    curthread, m->lock_object.lo_name, file, line));
 	KASSERT(m->mtx_lock != MTX_DESTROYED,
@@ -394,7 +391,7 @@ _mtx_trylock_flags_(volatile uintptr_t *c, int opts, const char *file, int line)
 
 	m = mtxlock2mtx(c);
 
-	KASSERT(kdb_active != 0 || !TD_IS_IDLETHREAD(curthread),
+	KASSERT(kdb_active != 0 || !TD_IS_IDLETHREAD(td),
 	    ("mtx_trylock() by idle thread %p on sleep mutex %s @ %s:%d",
 	    curthread, m->lock_object.lo_name, file, line));
 	KASSERT(m->mtx_lock != MTX_DESTROYED,
@@ -414,10 +411,10 @@ _mtx_trylock_flags_(volatile uintptr_t *c, int opts, const char *file, int line)
 		if (v == tid &&
 		    ((m->lock_object.lo_flags & LO_RECURSABLE) != 0 ||
 		    (opts & MTX_RECURSE) != 0)) {
-				 m->mtx_recurse++;
-				 atomic_set_ptr(&m->mtx_lock, MTX_RECURSED);
-				 recursed = true;
-				 break;
+			m->mtx_recurse++;
+			atomic_set_ptr(&m->mtx_lock, MTX_RECURSED);
+			recursed = true;
+			break;
 		}
 		rval = 0;
 		break;

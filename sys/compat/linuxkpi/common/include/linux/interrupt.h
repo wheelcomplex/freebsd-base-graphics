@@ -36,8 +36,6 @@
 #include <linux/irqreturn.h>
 #include <linux/hardirq.h>
 
-struct seq_file;
-#undef resource
 typedef	irqreturn_t	(*irq_handler_t)(int, void *);
 
 #define	IRQF_SHARED	RF_SHAREABLE
@@ -51,21 +49,6 @@ struct irq_ent {
 	void		*tag;
 	unsigned int	irq;
 };
-
-struct irqaction {
-	irq_handler_t		handler;
-	void			*dev_id;
-	struct irqaction	*next;
-	irq_handler_t		thread_fn;
-	struct task_struct	*thread;
-	struct irqaction	*secondary;
-	unsigned int		irq;
-	unsigned int		flags;
-	unsigned long		thread_flags;
-	unsigned long		thread_mask;
-	const char		*name;
-};
-
 
 static inline int
 linux_irq_rid(struct device *dev, unsigned int irq)
@@ -161,8 +144,6 @@ free_irq(unsigned int irq, void *device)
 	list_del(&irqe->links);
 	kfree(irqe);
 }
-
-#define resource linux_resource
 
 /*
  * Tasklet support

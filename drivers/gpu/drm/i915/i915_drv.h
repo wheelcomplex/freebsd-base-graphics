@@ -69,8 +69,6 @@
 #include "i915_gem_request.h"
 #include "i915_gem_timeline.h"
 
-#define resource linux_resource
-#include "i915_vma.h"
 #include "intel_gvt.h"
 
 /* General customization:
@@ -1816,6 +1814,10 @@ struct drm_i915_private {
 	int relative_constants_mode;
 
 	void __iomem *regs;
+#ifdef __FreeBSD__
+	int mmio_rid;
+	int mmio_restype;
+#endif
 
 	struct intel_uncore uncore;
 
@@ -1853,7 +1855,13 @@ struct drm_i915_private {
 	struct i915_vma *semaphore;
 
 	struct drm_dma_handle *status_page_dmah;
+#ifdef __FreeBSD__
+#undef resource
+	struct resource *mch_res;
+	int mch_res_rid;
+#else
 	struct resource mch_res;
+#endif
 
 	/* protects the irq masks */
 	spinlock_t irq_lock;

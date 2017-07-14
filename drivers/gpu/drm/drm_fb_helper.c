@@ -42,7 +42,6 @@
 #include <drm/drm_atomic_helper.h>
 
 #define fb_info linux_fb_info
-#define lru plinks.lq
 #include "drm_crtc_helper_internal.h"
 
 static bool drm_fbdev_emulation = true;
@@ -826,7 +825,7 @@ EXPORT_SYMBOL(drm_fb_helper_alloc_fbi);
 void drm_fb_helper_unregister_fbi(struct drm_fb_helper *fb_helper)
 {
 	if (fb_helper && fb_helper->fbdev)
-		unregister_framebuffer(fb_helper->fbdev);
+		linux_unregister_framebuffer(fb_helper->fbdev);
 }
 EXPORT_SYMBOL(drm_fb_helper_unregister_fbi);
 
@@ -905,6 +904,7 @@ static void drm_fb_helper_dirty(struct fb_info *info, u32 x, u32 y,
 	schedule_work(&helper->dirty_work);
 }
 
+#if defined(CONFIG_FB_DEFERRED_IO)
 /**
  * drm_fb_helper_deferred_io() - fbdev deferred_io callback function
  * @info: fb_info struct pointer
@@ -937,6 +937,7 @@ void drm_fb_helper_deferred_io(struct fb_info *info,
 	}
 }
 EXPORT_SYMBOL(drm_fb_helper_deferred_io);
+#endif
 
 /**
  * drm_fb_helper_sys_read - wrapper around fb_sys_read
@@ -1600,6 +1601,23 @@ static int drm_fb_helper_single_fb_probe(struct drm_fb_helper *fb_helper,
 	for (i = 0; i < fb_helper->crtc_count; i++)
 		if (fb_helper->crtc_info[i].mode_set.num_connectors)
 			fb_helper->crtc_info[i].mode_set.fb = fb_helper->fb;
+
+
+	info->var.pixclock = 0;
+	info->fbio.fb_bpp = preferred_bpp;
+	sc = (struct vt_kms_softc *)info->fbio.fb_priv;
+	sc->fb_helper = fb_helper;
+	if (linux_register_framebuffer(info) < 0)
+		return -EINVAL;
+
+	dev_info(fb_helper->dev->dev, "fb%d: %s frame buffer device\n",
+			info->node, info->fix.id);
+
+	if (list_empty(&kernel_fb_helper_list)) {
+		register_sysrq_key('v', &sysrq_drm_fb_helper_restore_op);
+	}
+
+	list_add(&fb_helper->kernel_fb_list, &kernel_fb_helper_list);
 
 	return 0;
 }

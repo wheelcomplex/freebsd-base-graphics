@@ -495,13 +495,12 @@ vm_fault_hold(vm_map_t map, vm_offset_t vaddr, vm_prot_t fault_type,
 	int locked, nera, result, rv;
 	u_char behavior;
 	boolean_t wired;	/* Passed by reference. */
-	bool dead, growstack, hardfault, is_first_object_locked;
+	bool dead, hardfault, is_first_object_locked;
 
-	PCPU_INC(cnt.v_vm_faults);
+	VM_CNT_INC(v_vm_faults);
 	fs.vp = NULL;
 	faultcount = 0;
 	nera = -1;
-	growstack = true;
 	hardfault = false;
 
 RetryFault:;
@@ -511,17 +510,10 @@ RetryFault:;
 	 * search.
 	 */
 	fs.map = map;
-	result = vm_map_lookup(&fs.map, vaddr, fault_type, &fs.entry,
-	    &fs.first_object, &fs.first_pindex, &prot, &wired);
+	result = vm_map_lookup(&fs.map, vaddr, fault_type |
+	    VM_PROT_FAULT_LOOKUP, &fs.entry, &fs.first_object,
+	    &fs.first_pindex, &prot, &wired);
 	if (result != KERN_SUCCESS) {
-		if (growstack && result == KERN_INVALID_ADDRESS &&
-		    map != kernel_map) {
-			result = vm_map_growstack(curproc, vaddr);
-			if (result != KERN_SUCCESS)
-				return (KERN_FAILURE);
-			growstack = false;
-			goto RetryFault;
-		}
 		unlock_vp(&fs);
 		return (result);
 	}
@@ -546,6 +538,8 @@ RetryFault:;
 			vm_map_unlock(fs.map);
 		goto RetryFault;
 	}
+
+	MPASS((fs.entry->eflags & MAP_ENTRY_GUARD) == 0);
 
 	if (wired)
 		fault_type = prot | (fault_type & VM_PROT_COPY);
@@ -673,7 +667,7 @@ RetryFault:;
 				}
 				vm_object_pip_wakeup(fs.object);
 				VM_OBJECT_WUNLOCK(fs.object);
-				PCPU_INC(cnt.v_intrans);
+				VM_CNT_INC(v_intrans);
 				vm_object_deallocate(fs.first_object);
 				goto RetryFault;
 			}
@@ -999,9 +993,9 @@ readrest:
 			if ((fs.m->flags & PG_ZERO) == 0) {
 				pmap_zero_page(fs.m);
 			} else {
-				PCPU_INC(cnt.v_ozfod);
+				VM_CNT_INC(v_ozfod);
 			}
-			PCPU_INC(cnt.v_zfod);
+			VM_CNT_INC(v_zfod);
 			fs.m->valid = VM_PAGE_BITS_ALL;
 			/* Don't try to prefault neighboring pages. */
 			faultcount = 1;
@@ -1095,7 +1089,7 @@ readrest:
 				vm_page_xbusy(fs.m);
 				fs.first_m = fs.m;
 				fs.m = NULL;
-				PCPU_INC(cnt.v_cow_optim);
+				VM_CNT_INC(v_cow_optim);
 			} else {
 				/*
 				 * Oh, well, lets copy it.
@@ -1131,7 +1125,7 @@ readrest:
 			fs.m = fs.first_m;
 			if (!is_first_object_locked)
 				VM_OBJECT_WLOCK(fs.object);
-			PCPU_INC(cnt.v_cow_faults);
+			VM_CNT_INC(v_cow_faults);
 			curthread->td_cow++;
 		} else {
 			prot &= ~VM_PROT_WRITE;
@@ -1246,7 +1240,7 @@ readrest:
 	 */
 	unlock_and_deallocate(&fs);
 	if (hardfault) {
-		PCPU_INC(cnt.v_io_faults);
+		VM_CNT_INC(v_io_faults);
 		curthread->td_ru.ru_majflt++;
 #ifdef RACCT
 		if (racct_enable && fs.object->type == OBJT_VNODE) {

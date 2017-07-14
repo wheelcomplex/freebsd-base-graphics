@@ -29,10 +29,12 @@
 #ifndef _LINUX_PREEMPT_H_
 #define	_LINUX_PREEMPT_H_
 
-#include <linux/linkage.h>
 #include <linux/list.h>
 
 #define	in_interrupt() \
 	(curthread->td_intr_nesting_level || curthread->td_critnest)
+
+#define	preempt_disable()	critical_enter()
+#define	preempt_enable()	critical_exit()
 
 #endif					/* _LINUX_PREEMPT_H_ */

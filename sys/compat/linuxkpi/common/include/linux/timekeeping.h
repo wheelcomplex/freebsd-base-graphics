@@ -12,36 +12,6 @@ static inline u64 ktime_get_raw_ns(void)
         return (ts.tv_sec * NSEC_PER_SEC) + ts.tv_nsec;
 }
 
-enum tk_offsets {
-	TK_OFFS_REAL,
-	TK_OFFS_BOOT,
-	TK_OFFS_TAI,
-	TK_OFFS_MAX,
-};
-
-
-extern ktime_t ktime_mono_to_any(ktime_t tmono, enum tk_offsets offs);
-extern ktime_t ktime_get_with_offset(enum tk_offsets offs);
-extern ktime_t ktime_get_raw(void);
-
-
-static inline ktime_t
-ktime_mono_to_real(ktime_t mono)
-{
-	struct timespec tsb, tsn;
-	uint64_t now, boot;
-	ktime_t kt = 0;
-	nanotime(&tsn);
-	nanouptime(&tsb);
-
-	now = (tsn.tv_sec * NSEC_PER_SEC) + tsn.tv_nsec;
-	boot = (tsb.tv_sec * NSEC_PER_SEC) + tsb.tv_nsec;
-	/* return ktime_mono_to_any(mono, TK_OFFS_REAL); */
-	kt += (now - boot);
-
-	return (kt);
-}
-
 /**
  * ktime_get_real - get the real (wall-) time in ktime_t format
  */
@@ -65,18 +35,6 @@ ktime_get_boottime(void)
 	nanouptime(&ts);
 	kt = (ts.tv_sec * NSEC_PER_SEC) + ts.tv_nsec;
 	return (kt);
-}
-
-/**
- * ktime_get_real_seconds - Get the seconds portion of CLOCK_REALTIME
- */
-static inline int64_t
-ktime_get_real_seconds(void)
-{
-	struct timespec ts;
-
-	nanotime(&ts);
-	return (ts.tv_sec);
 }
 
 #endif
