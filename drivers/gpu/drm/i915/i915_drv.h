@@ -70,6 +70,7 @@
 #include "i915_gem_timeline.h"
 
 #include "intel_gvt.h"
+#include "i915_vma.h"
 
 /* General customization:
  */

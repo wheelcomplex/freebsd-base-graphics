@@ -27,6 +27,17 @@ ktime_get_real(void)
 }
 
 static inline ktime_t
+ktime_get_real_seconds(void)
+{
+	struct timespec ts;
+	ktime_t kt;
+
+	nanotime(&ts);
+	kt = ts.tv_sec;
+	return (kt);
+}
+
+static inline ktime_t
 ktime_get_boottime(void)
 {
 	struct timespec ts;

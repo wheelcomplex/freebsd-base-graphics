@@ -896,6 +896,9 @@ void __i915_add_request(struct drm_i915_gem_request *request, bool flush_caches)
 	 * decide whether to preempt the entire chain so that it is ready to
 	 * run at the earliest possible convenience.
 	 */
+#ifdef __FreeBSD__
+	#undef schedule
+#endif
 	if (engine->schedule)
 		engine->schedule(request, request->ctx->priority);
 

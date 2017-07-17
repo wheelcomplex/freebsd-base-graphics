@@ -2290,7 +2290,7 @@ int drm_fb_helper_initial_config(struct drm_fb_helper *fb_helper, int bpp_sel)
 
 	info = fb_helper->fbdev;
 	info->var.pixclock = 0;
-	ret = register_framebuffer(info);
+	ret = linux_register_framebuffer(info);
 	if (ret < 0)
 		return ret;
 

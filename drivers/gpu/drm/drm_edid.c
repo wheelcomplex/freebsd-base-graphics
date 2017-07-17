@@ -2232,7 +2232,7 @@ do_inferred_modes(struct detailed_timing *timing, void *c)
 	closure->modes += drm_dmt_modes_for_range(closure->connector,
 						  closure->edid,
 						  timing);
-	
+
 	if (!version_greater(closure->edid, 1, 1))
 		return; /* GTF not defined yet */
 
@@ -2472,7 +2472,7 @@ do_cvt_mode(struct detailed_timing *timing, void *c)
 
 static int
 add_cvt_modes(struct drm_connector *connector, struct edid *edid)
-{	
+{
 	struct detailed_mode_closure closure = {
 		.connector = connector,
 		.edid = edid,
@@ -2625,6 +2625,8 @@ cea_mode_alternate_timings(u8 vic, struct drm_display_mode *mode)
 	 * get the other variants by simply increasing the
 	 * vertical front porch length.
 	 */
+#pragma GCC warning "Not constant expression - error in CTASSERT()?"
+#ifdef __linux__
 	BUILD_BUG_ON(edid_cea_modes[8].vtotal != 262 ||
 		     edid_cea_modes[9].vtotal != 262 ||
 		     edid_cea_modes[12].vtotal != 262 ||
@@ -2633,7 +2635,7 @@ cea_mode_alternate_timings(u8 vic, struct drm_display_mode *mode)
 		     edid_cea_modes[24].vtotal != 312 ||
 		     edid_cea_modes[27].vtotal != 312 ||
 		     edid_cea_modes[28].vtotal != 312);
-
+#endif
 	if (((vic == 8 || vic == 9 ||
 	      vic == 12 || vic == 13) && mode->vtotal < 263) ||
 	    ((vic == 23 || vic == 24 ||
@@ -3393,7 +3395,7 @@ void drm_edid_get_monitor_name(struct edid *edid, char *name, int bufsize)
 {
 	int name_length;
 	char buf[13];
-	
+
 	if (bufsize <= 0)
 		return;
 

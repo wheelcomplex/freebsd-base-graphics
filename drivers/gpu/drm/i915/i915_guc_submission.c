@@ -1026,7 +1026,7 @@ static int guc_log_create_relay_file(struct intel_guc *guc)
 	 *      relay channel.
 	 * ii)  Should be able to use 'relay_file_operations' fops for the file.
 	 * iii) Set the 'i_private' field of file's inode to the pointer of
-	 *  relay channel buffer. 
+	 *  relay channel buffer.
 	 */
 	if (!log_dir) {
 		DRM_ERROR("Debugfs dir not available yet for GuC log file\n");
@@ -1242,7 +1242,7 @@ static void guc_log_cleanup(struct intel_guc *guc)
 
 static int guc_log_create_extras(struct intel_guc *guc)
 {
-	/* struct drm_i915_private *dev_priv = guc_to_i915(guc); */
+	struct drm_i915_private *dev_priv = guc_to_i915(guc);
 	void *vaddr;
 	int ret;
 
@@ -1358,7 +1358,7 @@ static void guc_log_create(struct intel_guc *guc)
 
 static int guc_log_late_setup(struct intel_guc *guc)
 {
-	/* struct drm_i915_private *dev_priv = guc_to_i915(guc); */
+	struct drm_i915_private *dev_priv = guc_to_i915(guc);
 	int ret;
 
 	lockdep_assert_held(&dev_priv->drm.struct_mutex);

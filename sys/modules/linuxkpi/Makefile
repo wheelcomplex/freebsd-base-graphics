@@ -2,20 +2,12 @@
 .PATH:	${SRCTOP}/sys/compat/linuxkpi/common/src ${SRCTOP}/sys/compat/linsysfs
 
 KMOD=	linuxkpi
-SRCS=	linux_acpi.c \
-	linux_anon_inodes.c \
-	linux_compat.c \
+SRCS=	linux_compat.c \
 	linux_current.c \
-	linux_device.c \
-	linux_dmabuf.c \
-	linux_dmafence.c \
-	linux_firmware.c \
-	linux_fs.c \
 	linux_hrtimer.c \
 	linux_idr.c \
 	linux_kmod.c \
 	linux_kthread.c \
-	linux_llist.c \
 	linux_lock.c \
 	linux_page.c \
 	linux_pci.c \
@@ -24,9 +16,6 @@ SRCS=	linux_acpi.c \
 	linux_rcu.c \
 	linux_schedule.c \
 	linux_slab.c \
-	linux_sort.c \
-	linux_stubs.c \
-	linux_sync_file.c \
 	linux_sysfs.c \
 	linux_tasklet.c \
 	linux_usb.c \

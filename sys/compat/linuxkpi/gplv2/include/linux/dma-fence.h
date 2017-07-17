@@ -1,8 +1,8 @@
 /*
  * XXX needs rewrite
  */
-#ifndef __LINUX_DMA_FENCE_H
-#define __LINUX_DMA_FENCE_H
+#ifndef __LINUX_GPLV2_DMA_FENCE_H
+#define __LINUX_GPLV2_DMA_FENCE_H
 
 #include <linux/err.h>
 #include <linux/wait.h>
@@ -454,9 +454,9 @@ dma_fence_init(struct dma_fence *fence, const struct dma_fence_ops *ops,
 static inline bool
 dma_fence_is_later(struct dma_fence *f1, struct dma_fence *f2){
 
-	// must be in the same context to be a reasonable comparison 
+	// must be in the same context to be a reasonable comparison
 	if(WARN_ON(f1->context != f2->context)) return false;
-	
+
 	return (f1->seqno > f2->seqno);
 }
 

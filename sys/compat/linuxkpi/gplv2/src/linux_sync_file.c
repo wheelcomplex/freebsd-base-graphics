@@ -14,7 +14,6 @@
  *
  */
 
-#include <linux/export.h>
 #include <linux/file.h>
 #include <linux/fs.h>
 #include <linux/kernel.h>
@@ -37,7 +36,7 @@ static struct sync_file *sync_file_alloc(void)
 	if (!sync_file)
 		return NULL;
 
-	#pragma GCC warning "anon_inode_getfile() need impl!"
+	#pragma GCC warning "anon_inode_getfile() need proper impl!"
 	sync_file->file = anon_inode_getfile("/tmp/drm_sync_file", &sync_file_fops, sync_file, 0);
 	if (IS_ERR(sync_file->file))
 		goto err;

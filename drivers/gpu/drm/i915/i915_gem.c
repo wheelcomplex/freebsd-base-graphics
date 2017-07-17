@@ -44,6 +44,10 @@
 #include <linux/pagemap.h>
 #include <linux/radix-tree.h>
 
+#ifdef __FreeBSD__
+	#undef schedule
+#endif
+
 static void i915_gem_flush_free_objects(struct drm_i915_private *i915);
 static void i915_gem_object_flush_gtt_write_domain(struct drm_i915_gem_object *obj);
 static void i915_gem_object_flush_cpu_write_domain(struct drm_i915_gem_object *obj);
@@ -181,7 +185,6 @@ i915_gem_object_get_pages_phys(struct drm_i915_gem_object *obj)
 	struct address_space *mapping = obj->base.filp->f_mapping;
 #endif
 	drm_dma_handle_t *phys;
-	char *vaddr = obj->phys_handle->vaddr;
 	struct sg_table *st;
 	struct scatterlist *sg;
 	char *vaddr;
@@ -272,7 +275,7 @@ i915_gem_object_put_pages_phys(struct drm_i915_gem_object *obj,
 {
 	__i915_gem_object_release_shmem(obj, pages);
 
-	if (obj->dirty) {
+	if (obj->mm.dirty) {
 #ifdef __FreeBSD__
 		vm_object_t mapping = obj->base.filp->_shmem;
 #else
@@ -482,7 +485,6 @@ static void __fence_set_priority(struct dma_fence *fence, int prio)
 	engine = rq->engine;
 	if (!engine->schedule)
 		return;
-
 	engine->schedule(rq, prio);
 }
 
@@ -2296,7 +2298,7 @@ i915_gem_object_truncate(struct drm_i915_gem_object *obj)
 #else
 	shmem_truncate_range(file_inode(obj->base.filp), 0, (loff_t)-1);
 #endif
-	obj->madv = __I915_MADV_PURGED;
+	obj->mm.madv = __I915_MADV_PURGED;
 }
 
 /* Try to discard unwanted pages */
@@ -2446,7 +2448,8 @@ static struct sg_table *
 i915_gem_object_get_pages_gtt(struct drm_i915_gem_object *obj)
 {
 	struct drm_i915_private *dev_priv = to_i915(obj->base.dev);
-	int page_count, i;
+	unsigned long i;
+	const unsigned long page_count = obj->base.size / PAGE_SIZE;
 #ifdef __FreeBSD__
 	vm_object_t mapping;
 #else
@@ -4101,9 +4104,11 @@ i915_gem_object_create(struct drm_device *dev, u64 size)
 	if (WARN_ON(size >> PAGE_SHIFT > INT_MAX))
 		return ERR_PTR(-E2BIG);
 
+#pragma GCC warning "FIX ME!!"
+#ifndef __FreeBSD__
 	if (overflows_type(size, obj->base.size))
 		return ERR_PTR(-E2BIG);
-
+#endif
 	obj = i915_gem_object_alloc(dev);
 	if (obj == NULL)
 		return ERR_PTR(-ENOMEM);

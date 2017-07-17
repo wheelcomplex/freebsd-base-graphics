@@ -37,6 +37,7 @@
 #include <linux/compiler.h>
 #include <linux/list.h>
 #include <linux/spinlock.h>
+#include <linux/lockdep.h>
 
 #include <asm/atomic.h>
 
@@ -97,11 +98,16 @@ extern wait_queue_func_t autoremove_wake_function;
 	};								\
 	MTX_SYSINIT(name, &(name).lock.m, spin_lock_name("wqhead"), MTX_DEF)
 
-#define	init_waitqueue_head(wqh) do {					\
-	mtx_init(&(wqh)->lock.m, spin_lock_name("wqhead"),		\
-	    NULL, MTX_DEF | MTX_NEW | MTX_NOWITNESS);			\
-	INIT_LIST_HEAD(&(wqh)->task_list);				\
+static inline void
+__init_waitqueue_head(wait_queue_head_t *wqh, __unused const void *name, __unused void *key) {
+	mtx_init(&(wqh)->lock.m, spin_lock_name("wqhead"), NULL, MTX_DEF | MTX_NEW | MTX_NOWITNESS);
+	INIT_LIST_HEAD(&(wqh)->task_list);
+}
+
+#define	init_waitqueue_head(wqh) do {		\
+	__init_waitqueue_head(wqh, NULL, NULL); \
 } while (0)
+
 
 void linux_wake_up(wait_queue_head_t *, unsigned int, int, bool);
 
