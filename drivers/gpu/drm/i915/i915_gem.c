@@ -45,7 +45,8 @@
 #include <linux/radix-tree.h>
 
 #ifdef __FreeBSD__
-	#undef schedule
+#define swiotlb_max_segment(_) 0;
+#undef schedule
 #endif
 
 static void i915_gem_flush_free_objects(struct drm_i915_private *i915);
