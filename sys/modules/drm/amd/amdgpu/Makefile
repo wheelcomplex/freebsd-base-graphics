@@ -67,6 +67,7 @@ SRCS	= \
 	amdgpu_uvd.c \
 	amdgpu_vce.c \
 	amdgpu_vm.c \
+	amdgpu_vram_mgr.c \
 	amd_powerplay.c \
 	atom.c \
 	atombios_crtc.c \
