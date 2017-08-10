@@ -181,7 +181,7 @@ static struct sg_table *
 i915_gem_object_get_pages_phys(struct drm_i915_gem_object *obj)
 {
 #ifdef __FreeBSD__
-	vm_object_t mapping = obj->base.filp->_shmem;
+	vm_object_t mapping = obj->base.filp->f_shmem;
 #else
 	struct address_space *mapping = obj->base.filp->f_mapping;
 #endif
@@ -280,7 +280,7 @@ i915_gem_object_put_pages_phys(struct drm_i915_gem_object *obj,
 
 	if (obj->mm.dirty) {
 #ifdef __FreeBSD__
-		vm_object_t mapping = obj->base.filp->_shmem;
+		vm_object_t mapping = obj->base.filp->f_shmem;
 #else
 		struct address_space *mapping = obj->base.filp->f_mapping;
 #endif
@@ -1732,7 +1732,7 @@ i915_gem_mmap_ioctl(struct drm_device *dev, void *data,
 	}
 	PROC_UNLOCK(p);
 
-	vmobj = obj->base.filp->_shmem;
+	vmobj = obj->base.filp->f_shmem;
 	vm_object_reference(vmobj);
 	rv = vm_map_find(map, vmobj, args->offset, &addr, args->size, 0,
 	    VMFS_OPTIMAL_SPACE, VM_PROT_READ | VM_PROT_WRITE,
@@ -2279,7 +2279,7 @@ i915_gem_object_truncate(struct drm_i915_gem_object *obj)
 	 * backing pages, *now*.
 	 */
 #ifdef __FreeBSD__
-	shmem_truncate_range(obj->base.filp->_shmem, 0, (loff_t)-1);
+	shmem_truncate_range(obj->base.filp->f_shmem, 0, (loff_t)-1);
 #else
 	shmem_truncate_range(file_inode(obj->base.filp), 0, (loff_t)-1);
 #endif
@@ -2309,7 +2309,7 @@ void __i915_gem_object_invalidate(struct drm_i915_gem_object *obj)
 		return;
 
 #ifdef __FreeBSD__
-	mapping = obj->base.filp->_shmem;
+	mapping = obj->base.filp->f_shmem;
 #else
 	mapping = obj->base.filp->f_mapping,
 #endif
@@ -2467,7 +2467,7 @@ rebuild_st:
 	 * Fail silently without starting the shrinker
 	 */
 #ifdef __FreeBSD__
-	mapping = obj->base.filp->_shmem;
+	mapping = obj->base.filp->f_shmem;
 	gfp = 0;
 #else
 	mapping = obj->base.filp->f_mapping;

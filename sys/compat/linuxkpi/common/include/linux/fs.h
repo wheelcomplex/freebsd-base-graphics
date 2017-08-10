@@ -72,13 +72,6 @@ struct file_operations;
 #define i_mapping v_bufobj.bo_object
 #define file_inode(f) ((f)->f_vnode)
 
-/* this value isn't needed by the compat layer */
-static inline void
-i_size_write(void *inode, off_t i_size)
-{
-	/* NOP */
-}
-
 struct linux_file {
 	struct file	*_file;
 	const struct file_operations	*f_op;
@@ -90,10 +83,11 @@ struct linux_file {
 	struct selinfo	f_selinfo;
 	struct sigio	*f_sigio;
 	struct vnode	*f_vnode;
+#define	f_inode	f_vnode
 	volatile u_int	f_count;
 
 	/* anonymous shmem object */
-	vm_object_t	_shmem;
+	vm_object_t	f_shmem;
 
 	/* kqfilter support */
 	int		f_kqflags;
@@ -172,7 +166,8 @@ struct file_operations {
 	int (*setlease)(struct file *, long, struct file_lock **);
 #endif
 };
-#define	fops_get(fops)	(fops)
+#define	fops_get(fops)		(fops)
+#define	replace_fops(f, fops)	((f)->f_op = (fops))
 
 #define	FMODE_READ	FREAD
 #define	FMODE_WRITE	FWRITE
@@ -181,17 +176,6 @@ struct file_operations {
 /* Alas, no aliases. Too much hassle with bringing module.h everywhere */
 #define fops_put(fops) \
 	do { if (fops) module_put((fops)->owner); } while(0)
-/*
- * This one is to be used *ONLY* from ->open() instances.
- * fops must be non-NULL, pinned down *and* module dependencies
- * should be sufficient to pin the caller down as well.
- */
-#define replace_fops(f, fops) \
-	do {	\
-		struct file *__file = (f); \
-		fops_put(__file->f_op); \
-		BUG_ON(!(__file->f_op = (fops))); \
-	} while(0)
 
 int __register_chrdev(unsigned int major, unsigned int baseminor,
     unsigned int count, const char *name,
@@ -255,12 +239,8 @@ nonseekable_open(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-static inline dev_t
-iminor(struct inode *inode)
-{
-
-	return (minor(dev2unit(inode->v_rdev)));
-}
+extern unsigned int linux_iminor(struct inode *);
+#define	iminor(...) linux_iminor(__VA_ARGS__)
 
 static inline struct linux_file *
 get_file(struct linux_file *f)

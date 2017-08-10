@@ -26,8 +26,9 @@
  *
  * $FreeBSD$
  */
+
 #ifndef _LINUX_KTIME_H
-#define _LINUX_KTIME_H
+#define	_LINUX_KTIME_H
 
 #include <linux/types.h>
 #include <linux/time.h>
@@ -146,7 +147,7 @@ timeval_to_ktime(struct timeval tv)
 #define ktime_to_timeval(kt)		ns_to_timeval((kt))
 #define ktime_to_ns(kt)			(kt)
 
-static inline s64
+static inline int64_t
 ktime_get_ns(void)
 {
 	struct timespec ts;
@@ -157,6 +158,8 @@ ktime_get_ns(void)
 	return (ktime_to_ns(kt));
 }
 
+#define	ktime_get_raw_ns()	ktime_get_ns()
+
 static inline ktime_t
 ktime_get(void)
 {
@@ -166,6 +169,22 @@ ktime_get(void)
 	return (timespec_to_ktime(ts));
 }
 
-#include <linux/timekeeping.h>
+static inline ktime_t
+ktime_get_boottime(void)
+{
+	struct timespec ts;
 
-#endif	/* _LINUX_KTIME_H */
+	nanouptime(&ts);
+	return (timespec_to_ktime(ts));
+}
+
+static inline ktime_t
+ktime_get_real(void)
+{
+	struct timespec ts;
+
+	nanotime(&ts);
+	return (timespec_to_ktime(ts));
+}
+
+#endif /* _LINUX_KTIME_H */

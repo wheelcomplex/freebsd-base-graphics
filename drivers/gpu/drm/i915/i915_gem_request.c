@@ -25,6 +25,10 @@
 #include <linux/prefetch.h>
 #include <linux/dma-fence-array.h>
 
+#ifdef __FreeBSD__
+#include <linux/smp.h>
+#endif
+
 #include "i915_drv.h"
 
 static const char *i915_fence_get_driver_name(struct dma_fence *fence)

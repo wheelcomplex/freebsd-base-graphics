@@ -378,6 +378,10 @@
         ..
         mdconfig
         ..
+        pfctl
+            files
+            ..
+        ..
     ..
     secure
         lib
@@ -399,6 +403,8 @@
                 tap
                 ..
             ..
+        ..
+        zoneinfo
         ..
     ..
     sys
@@ -641,6 +647,8 @@
         grep
         ..
         gzip
+        ..
+        hexdump
         ..
         ident
         ..
