@@ -135,7 +135,7 @@ struct file_operations {
 	long (*compat_ioctl)(struct file *, unsigned int, unsigned long);
 
 /* Although not supported in FreeBSD, to align with Linux code
- * we are adding llseek() only when it is mapped to no_llseek which returns 
+ * we are adding llseek() only when it is mapped to no_llseek which returns
  * an illegal seek error
  */
 	loff_t (*llseek)(struct file *, loff_t, int);
@@ -269,7 +269,7 @@ iput(struct inode *inode)
 	vrele(inode);
 }
 
-static inline loff_t 
+static inline loff_t
 no_llseek(struct linux_file *file, loff_t offset, int whence)
 {
 
@@ -281,6 +281,11 @@ noop_llseek(struct linux_file *file, loff_t offset, int whence)
 {
 
 	return (file->_file->f_offset);
+}
+
+static inline void
+i_size_write(void *inode, uint64_t size)
+{
 }
 
 #endif /* _LINUX_FS_H_ */

@@ -158,8 +158,6 @@ ktime_get_ns(void)
 	return (ktime_to_ns(kt));
 }
 
-#define	ktime_get_raw_ns()	ktime_get_ns()
-
 static inline ktime_t
 ktime_get(void)
 {
@@ -185,6 +183,27 @@ ktime_get_real(void)
 
 	nanotime(&ts);
 	return (timespec_to_ktime(ts));
+}
+
+static inline ktime_t
+ktime_get_real_seconds(void)
+{
+	struct timespec ts;
+	ktime_t kt;
+
+	nanotime(&ts);
+	kt = ts.tv_sec;
+	return (kt);
+}
+
+static inline u64
+ktime_get_raw_ns(void)
+{
+        struct timespec ts;
+
+        nanouptime(&ts);
+
+        return (ts.tv_sec * NSEC_PER_SEC) + ts.tv_nsec;
 }
 
 #endif /* _LINUX_KTIME_H */

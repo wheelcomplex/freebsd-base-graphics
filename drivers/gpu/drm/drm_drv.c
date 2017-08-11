@@ -516,7 +516,7 @@ int drm_dev_init(struct drm_device *dev,
 		 struct device *parent)
 {
 	int ret;
- 
+
 	kref_init(&dev->ref);
 	dev->dev = parent;
 	dev->driver = driver;
@@ -705,6 +705,9 @@ EXPORT_SYMBOL(drm_dev_unref);
 
 static int create_compat_control_link(struct drm_device *dev)
 {
+#ifdef __FreeBSD__
+	return 0;
+#else
 	struct drm_minor *minor;
 	char *name;
 	int ret;
@@ -732,14 +735,15 @@ static int create_compat_control_link(struct drm_device *dev)
 	ret = sysfs_create_link(minor->kdev->kobj.parent,
 				&minor->kdev->kobj,
 				name);
-
 	kfree(name);
 
 	return ret;
+#endif
 }
 
 static void remove_compat_control_link(struct drm_device *dev)
 {
+#ifndef __FreeBSD__
 	struct drm_minor *minor;
 	char *name;
 
@@ -755,8 +759,8 @@ static void remove_compat_control_link(struct drm_device *dev)
 		return;
 
 	sysfs_remove_link(minor->kdev->kobj.parent, name);
-
 	kfree(name);
+#endif
 }
 
 /**

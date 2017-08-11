@@ -3,7 +3,8 @@
 
 #include <linux/ktime.h>
 
-static inline u64 ktime_get_raw_ns(void)
+static inline u64
+ktime_get_raw_ns(void)
 {
         struct timespec ts;
 
@@ -23,17 +24,6 @@ ktime_get_real(void)
 
 	nanotime(&ts);
 	kt = (ts.tv_sec * NSEC_PER_SEC) + ts.tv_nsec;
-	return (kt);
-}
-
-static inline ktime_t
-ktime_get_real_seconds(void)
-{
-	struct timespec ts;
-	ktime_t kt;
-
-	nanotime(&ts);
-	kt = ts.tv_sec;
 	return (kt);
 }
 

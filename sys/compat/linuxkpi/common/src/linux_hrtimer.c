@@ -32,6 +32,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/lock.h>
 #include <sys/mutex.h>
 #include <sys/time.h>
+#include <sys/types.h>
 
 #include <machine/cpu.h>
 
@@ -101,8 +102,8 @@ linux_hrtimer_start_range_ns(struct hrtimer *hrtimer, ktime_t time, int64_t nsec
 {
 
 	mtx_lock(&hrtimer->mtx);
-	callout_reset_sbt(&hrtimer->callout, nstobt(time),
-					  nstobt(nsec), hrtimer_call_handler, hrtimer, 0);
+	callout_reset_sbt(&hrtimer->callout, nstosbt(time),
+					  nstosbt(nsec), hrtimer_call_handler, hrtimer, 0);
 	hrtimer->flags |= HRTIMER_ACTIVE;
 	mtx_unlock(&hrtimer->mtx);
 }

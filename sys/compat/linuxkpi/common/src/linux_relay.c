@@ -5,6 +5,7 @@
 #include <linux/relay.h>
 #include <linux/slab.h>
 #include <linux/poll.h>
+#include <linux/fs.h>
 #include <asm/uaccess.h>
 
 
@@ -122,7 +123,7 @@ struct rchan *relay_open(const char *base_filename,
 	bufs[0] = buf;
 	bufs[1] = NULL;
 	chan->buf = bufs;
-	
+
 	chan->private_data = private_data;
 	chan->version = RELAYFS_CHANNEL_VERSION;
 	chan->n_subbufs = n_subbufs;
@@ -354,7 +355,7 @@ static int relay_file_release(struct inode *inode, struct file *filp) {
 	/* kref_put(&buf->kref, relay_remove_buf); */
 
 	// relay_close() will clean up everything
-	
+
 	return 0;
 }
 
@@ -500,7 +501,7 @@ static ssize_t relay_file_read(struct file *filp,
 		return 0;
 
 #pragma GCC warning "VI_LOCK() instead of inode_lock(), OK?"
-	
+
 	VI_LOCK(file_inode(filp));
 	do {
 		void *from;
