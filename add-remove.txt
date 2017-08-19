@@ -1,0 +1,3 @@
+#
+git remote add newbsd ssh://git@github.com/wheelcomplex/freebsd.git && git fetch newbsd && git checkout -b newbsd newbsd/master
+#

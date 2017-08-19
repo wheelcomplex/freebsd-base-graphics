@@ -67,7 +67,8 @@ SYSCTL_INT(_kern_geom_eli, OID_AUTO, version, CTLFLAG_RD, &g_eli_version, 0,
 int g_eli_debug = 0;
 SYSCTL_INT(_kern_geom_eli, OID_AUTO, debug, CTLFLAG_RWTUN, &g_eli_debug, 0,
     "Debug level");
-static u_int g_eli_tries = 3;
+// initz: geli devices will be attach in initz rc.
+static u_int g_eli_tries = 0;
 SYSCTL_UINT(_kern_geom_eli, OID_AUTO, tries, CTLFLAG_RWTUN, &g_eli_tries, 0,
     "Number of tries for entering the passphrase");
 static u_int g_eli_visible_passphrase = GETS_NOECHO;

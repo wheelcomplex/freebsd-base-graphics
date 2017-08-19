@@ -102,6 +102,12 @@ SYSCTL_INT(_vfs_zfs, OID_AUTO, ccw_retry_interval, CTLFLAG_RW,
     &zfs_ccw_retry_interval, 0,
     "Configuration cache file write, retry after failure, interval (seconds)");
 
+static int zfs_initz_rootpool_readonly = 1;
+TUNABLE_INT("vfs.zfs.initz_rootpool_readonly", &zfs_initz_rootpool_readonly);
+SYSCTL_INT(_vfs_zfs, OID_AUTO, initz_rootpool_readonly, CTLFLAG_RW,
+    &zfs_initz_rootpool_readonly, 0,
+    "Configuration mountroot to open zfs pool in readonly mode");
+
 typedef enum zti_modes {
 	ZTI_MODE_FIXED,			/* value is # of threads (min 1) */
 	ZTI_MODE_BATCH,			/* cpu-intensive; value is ignored */
@@ -2315,6 +2321,11 @@ spa_load_impl(spa_t *spa, uint64_t pool_guid, nvlist_t *config,
 	if (!mosconfig)
 		spa->spa_mode = FREAD;
 
+	if (spa_is_root(spa) && spa->spa_mode != FREAD && zfs_initz_rootpool_readonly){
+		printf("ZFS NOTICE: initz mountroot, import zfs pool %s in readonly mode for vfs.zfs.initz_rootpool_readonly=1 (sysctl entry in loader.conf)\n", spa_name(spa));
+		spa->spa_mode = FREAD;
+	}
+
 	ASSERT(MUTEX_HELD(&spa_namespace_lock));
 
 	spa->spa_load_state = state;
@@ -4059,6 +4070,10 @@ spa_import_rootpool(char *devpath, char *devid)
 		 * Remove the existing root pool from the namespace so that we
 		 * can replace it with the correct config we just read in.
 		 */
+		if (spa->spa_state != POOL_STATE_UNINITIALIZED) {
+			spa_unload(spa);
+			spa_deactivate(spa);
+		}
 		spa_remove(spa);
 	}
 
@@ -4284,6 +4299,10 @@ spa_import_rootpool(const char *name)
 			 * that we can replace it with the correct config
 			 * we just read in.
 			 */
+			if (spa->spa_state != POOL_STATE_UNINITIALIZED) {
+				spa_unload(spa);
+				spa_deactivate(spa);
+			}
 			spa_remove(spa);
 		}
 		spa = spa_add(pname, config, NULL);

@@ -387,10 +387,17 @@ char *argv[];
 	    optind = 1;
 	}
 
-	while ((i = getopt(ac, av, "CSIHPabijJ:nquvzs:d:U:m:o:tw")) != EOF)
+	while ((i = getopt(ac, av, "cCSIHPabijJ:nquvzs:d:U:m:o:tw")) != EOF)
 	{
 	    switch(i)
 	    {
+	      case 'c':
+		// -IaSP
+		ps.idle = !ps.idle;
+		fmt_flags ^= FMT_SHOWARGS;
+		ps.system = !ps.system;
+		pcpu_stats = !pcpu_stats;
+		break;
 	      case 'v':			/* show version number */
 		fprintf(stderr, "%s: version %s\n",
 			myname, version_string());

@@ -511,8 +511,10 @@ probe_handle(EFI_HANDLE h, EFI_DEVICE_PATH *imgpath, BOOLEAN *preferred)
 		devinfo->next = NULL;
 
 		status = boot_modules[i]->probe(devinfo);
-		if (status == EFI_SUCCESS)
+		if (status == EFI_SUCCESS) {
+			printf("supported by module %s\n", boot_modules[i]->name);
 			return (EFI_SUCCESS);
+		}
 		(void)bs->FreePool(devinfo);
 	}
 

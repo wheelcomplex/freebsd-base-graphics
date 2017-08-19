@@ -650,6 +650,18 @@ fetchupgrade_check_params () {
 	    sed -E 's,-p[0-9]+,,' |
 	    sed -E 's,-SECURITY,-RELEASE,'`
 	ARCH=`uname -m`
+	oldrel=$RELNUM
+	RELNUM=`echo $RELNUM|sed -E 's,-STABLE,-RELEASE,'`
+	if [ "$oldrel" != "$RELNUM" ]
+	then
+		if [ $FORCEFETCH -ne 0 ]
+		then
+			echo "" && echo "$oldrel => $RELNUM" && echo ""
+		else
+			echo "" && echo "can not update $oldrel without -F" && echo ""
+			exit 1
+		fi
+	fi
 	FETCHDIR=${RELNUM}/${ARCH}
 	PATCHDIR=${RELNUM}/${ARCH}/bp
 
@@ -884,6 +896,18 @@ IDS_check_params () {
 	    sed -E 's,-p[0-9]+,,' |
 	    sed -E 's,-SECURITY,-RELEASE,'`
 	ARCH=`uname -m`
+	oldrel=$RELNUM
+	RELNUM=`echo $RELNUM|sed -E 's,-STABLE,-RELEASE,'`
+	if [ "$oldrel" != "$RELNUM" ]
+	then
+		if [ $FORCEFETCH -ne 0 ]
+		then
+			echo "" && echo "$oldrel => $RELNUM" && echo ""
+		else
+			echo "" && echo "can not update $oldrel without -F" && echo ""
+			exit 1
+		fi
+	fi
 	FETCHDIR=${RELNUM}/${ARCH}
 	PATCHDIR=${RELNUM}/${ARCH}/bp
 

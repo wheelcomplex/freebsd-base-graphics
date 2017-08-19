@@ -1,0 +1,93 @@
+#
+# GENERIC -- Generic kernel configuration file for FreeBSD/amd64
+#
+# For more information on this file, please read the config(5) manual page,
+# and/or the handbook section on Kernel Configuration Files:
+#
+#    http://www.FreeBSD.org/doc/en_US.ISO8859-1/books/handbook/kernelconfig-config.html
+#
+# The handbook is also available locally in /usr/share/doc/handbook
+# if you've installed the doc distribution, otherwise always see the
+# FreeBSD World Wide Web server (http://www.FreeBSD.org/) for the
+# latest information.
+#
+# An exhaustive list of options and more detailed explanations of the
+# device lines is also present in the ../../conf/NOTES and NOTES files.
+# If you are in doubt as to the purpose or necessity of a line, check first
+# in NOTES.
+#
+# $FreeBSD$
+#
+include         GENERIC_DRM
+
+ident		INITZ
+
+options         MD_ROOT		# MD is a potential root device
+
+# Make space in the kernel for a root filesystem on a md device.
+# Define to the number of kilobytes to reserve for the filesystem.
+# This is now optional.
+# If not defined, the root filesystem passed in as the MFS_IMAGE makeoption
+# will be automatically embedded in the kernel during linking. Its exact size
+# will be consumed within the kernel.
+# If defined, the old way of embedding the filesystem in the kernel will be
+# used. That is to say MD_ROOT_SIZE KB will be allocated in the kernel and
+# later, the filesystem image passed in as the MFS_IMAGE makeoption will be
+# dd'd into the reserved space if it fits.
+
+# 16M = 16384 KB
+# 32M = 32768 KB
+# 64M = 65536 KB
+# 128M = 131072 KB
+# options			MD_ROOT_SIZE=131072
+
+makeoptions     MFS_IMAGE=/usr/src/sys/amd64/conf/initz.mdz
+
+options         NKPT=256                # for INITZ, max N*2M md
+options         KSTACK_PAGES=6           # for zfs
+options         TMPFS                   # for INITZ
+options         ZFS                     # for INITZ
+options         KRPC                    # for INITZ
+options 	PROCFS			# Process filesystem (requires PSEUDOFS)
+options 	PSEUDOFS		# Pseudo-filesystem framework
+
+options 	COMPAT_FREEBSD32	# Compatible with i386 binaries
+
+# Enable 32-bit Linux ABI emulation (requires COMPAT_43 and COMPAT_FREEBSD32)
+options 	COMPAT_LINUX32
+
+# Enable the linux-like proc filesystem support (requires COMPAT_LINUX32
+# and PSEUDOFS)
+options 	LINPROCFS
+
+options 	GEOM_UZIP               # for INITZ
+options 	GEOM_ELI                # for INITZ
+options 	EARLY_AP_STARTUP	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=203682
+
+device      coretemp    # for INITZ
+
+device      if_bridge   # for INITZ
+device      uhid        # for INITZ
+
+# LACP
+device          lagg                    # link aggregation and link failover    interface
+
+device		wlan_xauth		# 802.11 xauth support
+
+device		tap			# Packet tunnel.
+
+device      	uether			# 
+device		cdce			# USB Communication Device Class Ethernet driver
+device		run				# Ralink Technology USB IEEE 802.11a/g/n wireless network device
+device      	axge			# ASIX Electronics AX88178A/AX88179 USB Gigabit Ethernet driver
+device		rtwn			# Realtek RTL8188CE PCIe IEEE 802.11b/g/n wireless network device
+device		rtwnfw			#
+
+#for geli/INITZ
+device          cryptodev
+device          aesni
+device          pf
+device          pflog
+device          pfsync
+
+#

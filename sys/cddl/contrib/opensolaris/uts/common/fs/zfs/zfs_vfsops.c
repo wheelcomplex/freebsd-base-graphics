@@ -89,6 +89,14 @@ static int zfs_version_zpl = ZPL_VERSION;
 SYSCTL_INT(_vfs_zfs_version, OID_AUTO, zpl, CTLFLAG_RD, &zfs_version_zpl, 0,
     "ZPL_VERSION");
 
+
+static boolean_t zfs_initz_shadow_rootfs = B_FALSE;
+TUNABLE_INT("vfs.zfs.initz_shadow_rootfs", &zfs_initz_shadow_rootfs);
+SYSCTL_INT(_vfs_zfs, OID_AUTO, initz_shadow_rootfs, CTLFLAG_RW,
+    &zfs_initz_shadow_rootfs, 0,
+    "Allow zfs to mount a file system on root(/) from userspace");
+
+
 static int zfs_mount(vfs_t *vfsp);
 static int zfs_umount(vfs_t *vfsp, int fflag);
 static int zfs_root(vfs_t *vfsp, int flags, vnode_t **vpp);
@@ -1622,6 +1630,18 @@ zfs_mount(vfs_t *vfsp)
 
 	if (vfs_getopt(vfsp->mnt_optnew, "from", (void **)&osname, NULL))
 		return (SET_ERROR(EINVAL));
+
+	if (!zfs_initz_shadow_rootfs) {
+		char *fspath;
+		if (!vfs_getopt(vfsp->mnt_optnew, "fspath", (void **)&fspath, NULL)) {
+			// fspath found.
+			if (!(strcmp(fspath, "/") != 0 || vfsp->vfs_flag & MNT_ROOTFS || vfsp->vfs_flag & MNT_UPDATE)) {
+				printf("zfs_mount: can not mount root from userspace, %s:%s on %s\n", "zfs", osname, fspath);
+				return (SET_ERROR(EBUSY));
+			}
+		}
+	}
+
 #endif	/* illumos */
 
 	/*

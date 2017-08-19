@@ -68,7 +68,7 @@
 #define	FLOW_CONTROL		0x18
 #define	GMAC_VLAN_TAG		0x1C
 #define	VERSION			0x20
-#define	DEBUG			0x24
+// #define	DEBUG			0x24
 #define	LPI_CONTROL_STATUS	0x30
 #define	LPI_TIMERS_CONTROL	0x34
 #define	INTERRUPT_STATUS	0x38

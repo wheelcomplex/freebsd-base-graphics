@@ -99,7 +99,8 @@ CRUNCH_PROGS_sbin= badsect					\
 	mount_udf mount_unionfs newfs				\
 	newfs_msdos nos-tun ping reboot				\
 	restore rcorder route savecore		 		\
-	shutdown spppcontrol swapon sysctl tunefs umount
+	shutdown spppcontrol swapon sysctl tunefs umount pfctl \
+	comcontrol conscontrol growfs mount_fusefs pflogd 
 
 .if ${MK_CCD} != "no"
 CRUNCH_PROGS_sbin+= ccdconfig
@@ -127,7 +128,7 @@ CRUNCH_PROGS_usr.sbin+= zdb
 # crunchgen does not like C++ programs; this should be fixed someday
 # CRUNCH_PROGS+= devd
 
-CRUNCH_LIBS+= -l80211 -lalias -lcam -lncursesw -ldevstat -lipsec -llzma
+CRUNCH_LIBS+= -l80211 -lalias -lcam -lncursesw -ldevstat -lipsec -llzma -lpcap
 .if ${MK_ZFS} != "no"
 CRUNCH_LIBS+= -lavl -lzpool -lzfs_core -lzfs -lnvpair -lpthread -luutil -lumem
 .else
@@ -167,8 +168,12 @@ CRUNCH_ALIAS_reboot= fastboot halt fasthalt
 CRUNCH_ALIAS_restore= rrestore
 CRUNCH_ALIAS_dump= rdump
 CRUNCH_ALIAS_fsck_ffs= fsck_4.2bsd fsck_ufs
-CRUNCH_ALIAS_geom= glabel gpart
+CRUNCH_ALIAS_geom= glabel gpart gcache gconcat gjournal gmirror gmountver gmultipath \
+				   gnop graid graid3 gsched gshsec gstripe gvirstor
 CRUNCH_ALIAS_shutdown= poweroff
+CRUNCH_ALIAS_md5= rmd160 sha1 sha256 sha384 sha512 sha512t256 skein1024 skein256 skein512
+
+CRUNCH_ALIAS_swapon= swapoff swapctl
 
 # dhclient has historically been troublesome...
 CRUNCH_PROGS_sbin+= dhclient
@@ -179,7 +184,36 @@ CRUNCH_BUILDOPTS_dhclient= -DRELEASE_CRUNCH -Dlint
 #
 CRUNCH_SRCDIRS+= usr.bin
 
-CRUNCH_PROGS_usr.bin= head mt sed tail tee
+CRUNCH_PROGS_usr.bin= head mt sed tail tee grep touch find tr dirname basename du 
+
+CRUNCH_PROGS_usr.bin+= mkdep sockstat env compress cap_mkdb tr truncate nohup top 
+
+CRUNCH_PROGS_usr.bin+= nice diff renice timeout mktemp yes true getopt unzip xargs seq mkuzip 
+
+CRUNCH_PROGS_usr.bin+= printf find cpuset bc grep basename time tftp sort cut uniq pagesize locale split 
+
+CRUNCH_PROGS_usr.bin+= dirname false cmp uname systat
+
+CRUNCH_PROGS_usr.bin+= hexdump
+CRUNCH_ALIAS_stat= hd od
+
+CRUNCH_PROGS_usr.bin+= stat
+CRUNCH_ALIAS_stat= readlink
+
+CRUNCH_PROGS_usr.bin+= w
+CRUNCH_ALIAS_w= uptime
+
+CRUNCH_PROGS_usr.bin+= tset
+CRUNCH_ALIAS_tset= reset
+
+CRUNCH_PROGS_usr.bin+= alias
+CRUNCH_ALIAS_alias= bg cd command fc fg getopts hash jobs read type ulimit umask unalias wait
+
+CRUNCH_PROGS_usr.bin+= truss
+CRUNCH_LIBS+= -lsysdecode
+
+CRUNCH_PROGS_usr.bin+= file
+CRUNCH_LIBS+= -lmagic
 
 CRUNCH_PROGS_usr.bin+= gzip
 CRUNCH_ALIAS_gzip= gunzip gzcat zcat
